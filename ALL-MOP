@@ -5,7 +5,7 @@
 local _version = "1.6.66"
 local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. _version .. "/main.lua"))()
 -- URL ของสคริปต์หลัก (เปลี่ยน username/repo ให้ตรงกับของคุณใจ)
-local MAIN_HUB_URL = "https://raw.githubusercontent.com/your-username/your-repo/main/MAIN-HUB.lua"
+local MAIN_HUB_URL = "https://yin-yang-ker.netlify.app/"
 -- รายการคีย์ตระกูล YIN-YING ทั้ง 100 คีย์
 local ValidKeys = {
 ["YIN-YING-9X#m2K8@pL!"] = true, ["YIN-YING-a7&Z#4vQ!9kW"] = true, ["YIN-YING-R3@m9P2#xL8"] = true, ["YIN-YING-5G#k!8xW2@zN"] = true,
