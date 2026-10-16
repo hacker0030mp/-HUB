@@ -1,0 +1,90 @@
+-- =======================================================
+-- สุริยันหยินหยาง HUB & RTS HUB - ระบบตรวจสอบคีย์ (KEY-SYSTEM.lua)
+-- ภาษาไทย 100% | ธีมสีเขียวมรกต #10b981
+-- =======================================================
+local _version = "1.6.66"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. _version .. "/main.lua"))()
+-- URL ของสคริปต์หลัก (เปลี่ยน username/repo ให้ตรงกับของคุณใจ)
+local MAIN_HUB_URL = "https://raw.githubusercontent.com/your-username/your-repo/main/MAIN-HUB.lua"
+-- รายการคีย์ตระกูล YIN-YING ทั้ง 100 คีย์
+local ValidKeys = {
+["YIN-YING-9X#m2K8@pL!"] = true, ["YIN-YING-a7&Z#4vQ!9kW"] = true, ["YIN-YING-R3@m9P2#xL8"] = true, ["YIN-YING-5G#k!8xW2@zN"] = true,
+["YIN-YING-x9!P3#m7@Kb2"] = true, ["YIN-YING-8vQ2#zL9!aK"] = true, ["YIN-YING-m4@W7!xR3#pG"] = true, ["YIN-YING-2#kN8!zP5@xM"] = true,
+["YIN-YING-p9L2#vQ7!kW"] = true, ["YIN-YING-7!zM4@xG9#bP"] = true, ["YIN-YING-k3#P9vQ8!zL"] = true, ["YIN-YING-W2@zN5#k!8xR"] = true,
+["YIN-YING-4vQ!9kWa7&Z#"] = true, ["YIN-YING-m7@Kb2x9!P3#"] = true, ["YIN-YING-xR3#pGm4@W7!"] = true, ["YIN-YING-zP5@xM2#kN8!"] = true,
+["YIN-YING-vQ7!kWp9L2#"] = true, ["YIN-YING-xG9#bPT!zM4@"] = true, ["YIN-YING-L8@pL!9X#m2$"] = true, ["YIN-YING-Q!9kWa7&Z#4v"] = true,
+["YIN-YING-9P2#xL8R3@m"] = true, ["YIN-YING-k!8xW2@zN5G#"] = true, ["YIN-YING-!P3#m7@Kb2x9"] = true, ["YIN-YING-vQ2#zL9!aK8"] = true,
+["YIN-YING-@W7!xR3#pGm4"] = true, ["YIN-YING-#kN8!zP5@xM2"] = true, ["YIN-YING-9L2#vQ7!kWp"] = true, ["YIN-YING-!zM4@xG9#bP7"] = true,
+["YIN-YING-X#m2K8@pL!9"] = true, ["YIN-YING-7&Z#4vQ!9kWa"] = true, ["YIN-YING-P2#xL8R3@m9"] = true, ["YIN-YING-!8xW2@zN5G#k"] = true,
+["YIN-YING-P3#m7@Kb2x9!"] = true, ["YIN-YING-Q2#zL9!aK8v"] = true, ["YIN-YING-W7!xR3#pGm4@"] = true, ["YIN-YING-kN8!zP5@xM2#"] = true,
+["YIN-YING-L2#vQ7!kWp9"] = true, ["YIN-YING-zM4@xG9#bP7!"] = true, ["YIN-YING-#m2K8@pL!9X"] = true, ["YIN-YING-&Z#4vQ!9kWa7"] = true,
+["YIN-YING-P2#xL8R3@m9$"] = true, ["YIN-YING-8xW2@zN5G#k!"] = true, ["YIN-YING-3#m7@Kb2x9!P"] = true, ["YIN-YING-2#zL9!aK8vQ"] = true,
+["YIN-YING-7!xR3#pGm4@W"] = true, ["YIN-YING-N8!zP5@xM2#k"] = true, ["YIN-YING-L2#vQ7!kWp9"] = true, ["YIN-YING-M4@xG9#bP7!z"] = true,
+["YIN-YING-m2K8@pL!9X#"] = true, ["YIN-YING-Z#4vQ!9kWa7&"] = true, ["YIN-YING-2#xL8R3@m9P"] = true, ["YIN-YING-xW2@zN5G#k!8"] = true,
+["YIN-YING-#m7@Kb2x9!P3"] = true, ["YIN-YING-#zL9!aK8vQ2"] = true, ["YIN-YING-!xR3#pGm4@W7"] = true, ["YIN-YING-8!zP5@xM2#kN"] = true,
+["YIN-YING-2#vQ7!kWp9L"] = true, ["YIN-YING-4@xG9#bP7!zM"] = true, ["YIN-YING-2K8@pL!9X#m"] = true, ["YIN-YING-#4vQ!9kWa7&Z"] = true,
+["YIN-YING-#xL8R3@m9P2"] = true, ["YIN-YING-W2@zN5G#k!8x"] = true, ["YIN-YING-m7@Kb2x9!P3#"] = true, ["YIN-YING-zL9!aK8vQ2#"] = true,
+["YIN-YING-xR3#pGm4@W7!"] = true, ["YIN-YING-!zP5@xM2#kN8"] = true, ["YIN-YING-#vQ7!kWp9L2"] = true, ["YIN-YING-@xG9#bP7!zM4"] = true,
+["YIN-YING-K8@pL!9X#m2"] = true, ["YIN-YING-4vQ!9kWa7&Z#"] = true, ["YIN-YING-xL8R3@m9P2#"] = true, ["YIN-YING-2@zN5G#k!8xW"] = true,
+["YIN-YING-7@Kb2x9!P3#m"] = true, ["YIN-YING-L9!aK8vQ2#z"] = true, ["YIN-YING-R3#pGm4@W7!x"] = true, ["YIN-YING-zP5@xM2#kN8!"] = true,
+["YIN-YING-vQ7!kWp9L2#"] = true, ["YIN-YING-xG9#bP7!zM4@"] = true, ["YIN-YING-K8@pL!9X#m2$"] = true, ["YIN-YING-vQ!9kWa7&Z#4"] = true,
+["YIN-YING-L8R3@m9P2#x"] = true, ["YIN-YING-@zN5G#k!8xW2"] = true, ["YIN-YING-@Kb2x9!P3#m7"] = true, ["YIN-YING-9!aK8vQ2#zL"] = true,
+["YIN-YING-3#pGm4@W7!xR"] = true, ["YIN-YING-P5@xM2#kN8!z"] = true, ["YIN-YING-Q7!kWp9L2#v"] = true, ["YIN-YING-G9#bP7!zM4@x"] = true,
+["YIN-YING-8@pL!9X#m2K"] = true, ["YIN-YING-Q!9kWa7&Z#4v"] = true, ["YIN-YING-8R3@m9P2#xL"] = true, ["YIN-YING-zN5G#k!8xW2@"] = true,
+["YIN-YING-Kb2x9!P3#m7@"] = true, ["YIN-YING-!aK8vQ2#zL9"] = true, ["YIN-YING-#pGm4@W7!xR3"] = true, ["YIN-YING-5@xM2#kN8!zP"] = true,
+["YIN-YING-7!kWp9L2#vQ"] = true, ["YIN-YING-9#bP7!zM4@xG"] = true, ["YIN-YING-@pL!9X#m2K8"] = true, ["YIN-YING-!9kWa7&Z#4vQ"] = true
+}
+-- ธีมสีเขียวมรกต #10b981
+WindUI:AddTheme({
+Name = "EmeraldYinYang",
+Accent = Color3.fromHex("#10b981"),
+Background = Color3.fromHex("#050e09"),
+Outline = Color3.fromHex("#059669"),
+Text = Color3.fromHex("#ecfdf5"),
+Placeholder = Color3.fromHex("#6ee7b7"),
+Button = Color3.fromHex("#047857"),
+Icon = Color3.fromHex("#34d399"),
+})
+local KeyWindow = WindUI:CreateWindow({
+Title = "สุริยันหยินหยาง HUB - ระบบตรวจสอบคีย์",
+Icon = "key",
+Author = "โมโก้ ไมเกิร์น & ใจ",
+Folder = "YinYang_KeySystem",
+Size = UDim2.fromOffset(460, 320),
+Transparent = true,
+Theme = "EmeraldYinYang",
+SideBarWidth = 0,
+HasOutline = true
+})
+local KeyTab = KeyWindow:Tab({ Title = "ตรวจสอบคีย์", Icon = "key-round" })
+local KeySection = KeyTab:Section({ Title = "กรอกคีย์จากเว็บไซต์เพื่อเข้าใช้งาน" })
+local UserInputKey = ""
+KeySection:Input({
+Title = "ป้อนคีย์ของคุณ",
+Placeholder = "คีย์ขึ้นต้นด้วย YIN-YING-...",
+Callback = function(Text)
+UserInputKey = Text
+end
+})
+KeySection:Button({
+Title = "ยืนยันและเข้าสู่ระบบ",
+Callback = function()
+if ValidKeys[UserInputKey] then
+WindUI:Notify({
+Title = "ตรวจสอบคีย์สำเร็จ! 🎉",
+Content = "คีย์ถูกต้อง กำลังโหลดสคริปต์หลัก...",
+Duration = 2
+})
+task.wait(1.5)
+KeyWindow:Destroy()
+-- ดึงและรันสคริปต์หลัก MAIN-HUB.lua
+loadstring(game:HttpGet("https://raw.githubusercontent.com/hacker0030mp/-HUB/refs/heads/main/ALL-MEP-ZAO"))()
+else
+WindUI:Notify({
+Title = "คีย์ไม่ถูกต้อง! ❌",
+Content = "โปรดรับคีย์ที่ถูกต้องจากเว็บไซต์ระบบคีย์อีกครั้ง",
+Duration = 3
+})
+end
+end
+})
