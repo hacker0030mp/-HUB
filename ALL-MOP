@@ -1,12 +1,15 @@
 -- =======================================================
--- สุริยันหยินหยาง HUB & RTS HUB - ระบบตรวจสอบคีย์ (KEY-SYSTEM.lua)
--- ภาษาไทย 100% | ธีมสีเขียวมรกต #10b981 | รองรับ Delta 100%
+-- สุริยันหยินหยาง HUB & RTS HUB - Custom UI 100%
+-- ภาษาไทย | ธีมสีเขียวมรกต | รองรับ Delta บนมือถือ
 -- =======================================================
 
-local _version = "1.6.66"
-local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. _version .. "/main.lua"))()
+local Players = game:GetService("Players")
+local CoreGui = game:GetService("CoreGui")
+local UserInputService = game:GetService("UserInputService")
+local RunService = game:GetService("RunService")
+local LocalPlayer = Players.LocalPlayer
 
--- รายการคีย์ตระกูล YIN-YING ทั้ง 100 คีย์ของคุณใจ
+-- รายการคีย์ตระกูล YIN-YING ทั้ง 100 คีย์
 local ValidKeys = {
     ["YIN-YING-9X#m2K8@pL!"] = true, ["YIN-YING-a7&Z#4vQ!9kW"] = true, ["YIN-YING-R3@m9P2#xL8"] = true, ["YIN-YING-5G#k!8xW2@zN"] = true,
     ["YIN-YING-x9!P3#m7@Kb2"] = true, ["YIN-YING-8vQ2#zL9!aK"] = true, ["YIN-YING-m4@W7!xR3#pG"] = true, ["YIN-YING-2#kN8!zP5@xM"] = true,
@@ -35,68 +38,227 @@ local ValidKeys = {
     ["YIN-YING-7!kWp9L2#vQ"] = true, ["YIN-YING-9#bP7!zM4@xG"] = true, ["YIN-YING-@pL!9X#m2K8"] = true, ["YIN-YING-!9kWa7&Z#4vQ"] = true
 }
 
--- กำหนดธีมสีเขียวมรกต #10b981
-WindUI:AddTheme({
-    Name = "EmeraldYinYang",
-    Accent = Color3.fromHex("#10b981"),
-    Background = Color3.fromHex("#050e09"),
-    Outline = Color3.fromHex("#059669"),
-    Text = Color3.fromHex("#ecfdf5"),
-    Placeholder = Color3.fromHex("#6ee7b7"),
-    Button = Color3.fromHex("#047857"),
-    Icon = Color3.fromHex("#34d399"),
-})
-
--- สร้างหน้าต่างระบบตรวจสอบคีย์
-local KeyWindow = WindUI:CreateWindow({
-    Title = "สุริยันหยินหยาง HUB & RTS HUB | ระบบตรวจสอบคีย์",
-    Icon = "key",
-    Author = "โมโก้ ไมเกิร์น & ใจ",
-    Folder = "YinYang_KeySystem",
-    Size = UDim2.fromOffset(480, 320),
-    Transparent = true,
-    Theme = "EmeraldYinYang",
-    SideBarWidth = 0,
-    HasOutline = true
-})
-
-local KeyTab = KeyWindow:Tab({ Title = "ตรวจสอบคีย์", Icon = "key-round" })
-local KeySection = KeyTab:Section({ Title = "กรอกคีย์ที่ได้รับจากเว็บไซต์เพื่อเข้าสู่ระบบ" })
-
-local UserInputKey = ""
-
--- ช่องกรอกคีย์
-KeySection:Input({
-    Title = "ป้อนคีย์ของคุณที่นี่",
-    Placeholder = "ตัวอย่าง: YIN-YING-9X#m2K8@pL!",
-    Callback = function(Text)
-        UserInputKey = Text
+-- เคลียร์ UI เก่าทิ้ง
+pcall(function()
+    if CoreGui:FindFirstChild("YinYangSystemUI") then
+        CoreGui.YinYangSystemUI:Destroy()
     end
-})
+end)
 
--- ปุ่มยืนยันคีย์
-KeySection:Button({
-    Title = "ยืนยันและเข้าสู่ระบบ",
-    Icon = "check-circle",
-    IconAlign = "Left",
-    Callback = function()
-        if ValidKeys[UserInputKey] then
-            WindUI:Notify({
-                Title = "ตรวจสอบคีย์สำเร็จ! 🎉",
-                Content = "คีย์ถูกต้อง กำลังเปิดเมนูหลัก...",
-                Duration = 2
-            })
-            task.wait(1.5)
-            KeyWindow:Destroy()
-            
-            -- เรียกใช้งานสคริปต์หลัก ALL-MOP ทันที
-            loadstring(game:HttpGet("https://raw.githubusercontent.com/hacker0030mp/-HUB/refs/heads/main/ALL-MOP"))()
-        else
-            WindUI:Notify({
-                Title = "คีย์ไม่ถูกต้อง! ❌",
-                Content = "โปรดตรวจสอบคีย์อีกครั้ง หรือรับคีย์ใหม่จากเว็บไซต์",
-                Duration = 3
-            })
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "YinYangSystemUI"
+ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- =======================================================
+-- 1. หน้าต่างตรวจสอบคีย์ (Key System Frame)
+-- =======================================================
+local KeyFrame = Instance.new("Frame")
+KeyFrame.Name = "KeyFrame"
+KeyFrame.Parent = ScreenGui
+KeyFrame.BackgroundColor3 = Color3.fromRGB(5, 14, 9)
+KeyFrame.BorderColor3 = Color3.fromRGB(16, 185, 129)
+KeyFrame.BorderSizePixel = 2
+KeyFrame.Position = UDim2.new(0.5, -200, 0.5, -120)
+KeyFrame.Size = UDim2.new(0, 400, 0, 240)
+Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 12)
+
+local KeyHeader = Instance.new("Frame")
+KeyHeader.Parent = KeyFrame
+KeyHeader.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
+KeyHeader.Size = UDim2.new(1, 0, 0, 35)
+Instance.new("UICorner", KeyHeader).CornerRadius = UDim.new(0, 12)
+
+local KeyTitle = Instance.new("TextLabel")
+KeyTitle.Parent = KeyHeader
+KeyTitle.BackgroundTransparency = 1
+KeyTitle.Size = UDim2.new(1, 0, 1, 0)
+KeyTitle.Font = Enum.Font.SourceSansBold
+KeyTitle.Text = "สุริยันหยินหยาง HUB | ระบบตรวจสอบคีย์"
+KeyTitle.TextColor3 = Color3.fromRGB(236, 253, 245)
+KeyTitle.TextSize = 14
+
+local KeyBox = Instance.new("TextBox")
+KeyBox.Parent = KeyFrame
+KeyBox.BackgroundColor3 = Color3.fromRGB(15, 28, 20)
+KeyBox.BorderColor3 = Color3.fromRGB(16, 185, 129)
+KeyBox.Position = UDim2.new(0.1, 0, 0.3, 0)
+KeyBox.Size = UDim2.new(0.8, 0, 0, 45)
+KeyBox.Font = Enum.Font.SourceSans
+KeyBox.PlaceholderText = "กรอกคีย์ (YIN-YING-...) ที่นี่"
+KeyBox.Text = ""
+KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+KeyBox.TextSize = 14
+Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
+
+local SubmitBtn = Instance.new("TextButton")
+SubmitBtn.Parent = KeyFrame
+SubmitBtn.BackgroundColor3 = Color3.fromRGB(16, 185, 129)
+SubmitBtn.Position = UDim2.new(0.1, 0, 0.6, 0)
+SubmitBtn.Size = UDim2.new(0.8, 0, 0, 45)
+SubmitBtn.Font = Enum.Font.SourceSansBold
+SubmitBtn.Text = "ยืนยันและเข้าสู่ระบบ"
+SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubmitBtn.TextSize = 16
+Instance.new("UICorner", SubmitBtn).CornerRadius = UDim.new(0, 8)
+
+-- ฟังก์ชันเปิดหน้าต่างเมนูหลักหลังจากผ่านคีย์
+local function OpenMainHub()
+    KeyFrame:Destroy()
+
+    -- =======================================================
+    -- 2. ไอคอนลูกบอลหยินหยางลอยได้ (Floating Rotating Logo)
+    -- =======================================================
+    local FloatingButton = Instance.new("ImageButton")
+    FloatingButton.Name = "FloatingLogo"
+    FloatingButton.Parent = ScreenGui
+    FloatingButton.BackgroundColor3 = Color3.fromRGB(5, 14, 9)
+    FloatingButton.BorderColor3 = Color3.fromRGB(16, 185, 129)
+    FloatingButton.BorderSizePixel = 2
+    FloatingButton.Position = UDim2.new(0.05, 0, 0.2, 0)
+    FloatingButton.Size = UDim2.new(0, 65, 0, 65)
+    FloatingButton.Image = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg"
+    FloatingButton.ScaleType = Enum.ScaleType.Stretch
+    FloatingButton.Active = true
+    FloatingButton.Draggable = true -- ลากบนจอมือถือได้
+
+    Instance.new("UICorner", FloatingButton).CornerRadius = UDim.new(1, 0)
+
+    -- หมุน 360 องศาตลอดเวลา
+    task.spawn(function()
+        local rot = 0
+        while FloatingButton and FloatingButton.Parent do
+            rot = (rot + 3) % 360
+            FloatingButton.Rotation = rot
+            task.wait(0.04)
         end
+    end)
+
+    -- =======================================================
+    -- 3. หน้าต่างเมนูหลัก (Main Frame)
+    -- =======================================================
+    local MainFrame = Instance.new("Frame")
+    MainFrame.Name = "MainFrame"
+    MainFrame.Parent = ScreenGui
+    MainFrame.BackgroundColor3 = Color3.fromRGB(5, 14, 9)
+    MainFrame.BorderColor3 = Color3.fromRGB(16, 185, 129)
+    MainFrame.BorderSizePixel = 2
+    MainFrame.Position = UDim2.new(0.5, -225, 0.5, -170)
+    MainFrame.Size = UDim2.new(0, 450, 0, 360)
+    MainFrame.Visible = false
+    Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+
+    -- หัวข้อค่ายผู้พัฒนา
+    local Header = Instance.new("Frame")
+    Header.Parent = MainFrame
+    Header.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
+    Header.Size = UDim2.new(1, 0, 0, 40)
+    Instance.new("UICorner", Header).CornerRadius = UDim.new(0, 12)
+
+    local TitleLabel = Instance.new("TextLabel")
+    TitleLabel.Parent = Header
+    TitleLabel.BackgroundTransparency = 1
+    TitleLabel.Size = UDim2.new(1, -45, 1, 0)
+    TitleLabel.Position = UDim2.new(0, 12, 0, 0)
+    TitleLabel.Font = Enum.Font.SourceSansBold
+    TitleLabel.Text = "สุริยันหยินหยาง HUB & RTS HUB | โมโก้ ไมเกิร์น & ใจ"
+    TitleLabel.TextColor3 = Color3.fromRGB(236, 253, 245)
+    TitleLabel.TextSize = 12
+    TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+    -- ปุ่มปิด (X)
+    local CloseBtn = Instance.new("TextButton")
+    CloseBtn.Parent = Header
+    CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
+    CloseBtn.Position = UDim2.new(1, -35, 0.5, -12)
+    CloseBtn.Size = UDim2.new(0, 24, 0, 24)
+    CloseBtn.Font = Enum.Font.SourceSansBold
+    CloseBtn.Text = "X"
+    CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    CloseBtn.TextSize = 14
+    Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
+
+    CloseBtn.MouseButton1Click:Connect(function()
+        MainFrame.Visible = false
+    end)
+
+    FloatingButton.MouseButton1Click:Connect(function()
+        MainFrame.Visible = not MainFrame.Visible
+    end)
+
+    -- เนื้อหาเมนู (ScrollingFrame)
+    local Content = Instance.new("ScrollingFrame")
+    Content.Parent = MainFrame
+    Content.BackgroundTransparency = 1
+    Content.Position = UDim2.new(0, 10, 0, 50)
+    Content.Size = UDim2.new(1, -20, 1, -60)
+    Content.CanvasSize = UDim2.new(0, 0, 2, 0)
+    Content.ScrollBarThickness = 5
+
+    local UIList = Instance.new("UIListLayout", Content)
+    UIList.Padding = UDim.new(0, 8)
+
+    local function AddBtn(text, cb)
+        local btn = Instance.new("TextButton")
+        btn.Parent = Content
+        btn.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
+        btn.Size = UDim2.new(1, 0, 0, 38)
+        btn.Font = Enum.Font.SourceSansBold
+        btn.Text = text
+        btn.TextColor3 = Color3.fromRGB(236, 253, 245)
+        btn.TextSize = 14
+        Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+        btn.MouseButton1Click:Connect(cb)
     end
-})
+
+    -- ฟังก์ชัน Kill & Utility
+    AddBtn("💥 วาร์ปฆ่าผู้เล่นทุกคนในแมพ (Kill All)", function()
+        pcall(function()
+            local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+            if not myRoot then return end
+            local pos = myRoot.CFrame
+            for _, p in pairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    myRoot.CFrame = p.Character.HumanoidRootPart.CFrame
+                    task.wait(0.1)
+                end
+            end
+            myRoot.CFrame = pos
+        end)
+    end)
+
+    AddBtn("⚡ เร่งความเร็วเดิน (WalkSpeed 50)", function()
+        pcall(function() LocalPlayer.Character.Humanoid.WalkSpeed = 50 end)
+    end)
+
+    AddBtn("🚀 กระโดดสูงพิเศษ (JumpPower 120)", function()
+        pcall(function()
+            LocalPlayer.Character.Humanoid.UseJumpPower = true
+            LocalPlayer.Character.Humanoid.JumpPower = 120
+        end)
+    end)
+
+    AddBtn("🔒 ล็อก/ปลดล็อกไอคอนลอย", function()
+        FloatingButton.Draggable = not FloatingButton.Draggable
+    end)
+
+    AddBtn("❌ ปิดสคริปต์ทั้งหมด", function()
+        ScreenGui:Destroy()
+    end)
+end
+
+-- กดปุ่มยืนยันคีย์
+SubmitBtn.MouseButton1Click:Connect(function()
+    if ValidKeys[KeyBox.Text] then
+        SubmitBtn.Text = "คีย์ถูกต้อง! กำลังเข้าสู่ระบบ..."
+        SubmitBtn.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
+        task.wait(1)
+        OpenMainHub()
+    else
+        SubmitBtn.Text = "คีย์ไม่ถูกต้อง! ลองใหม่อีกครั้ง"
+        SubmitBtn.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
+        task.wait(1.5)
+        SubmitBtn.Text = "ยืนยันและเข้าสู่ระบบ"
+        SubmitBtn.BackgroundColor3 = Color3.fromRGB(16, 185, 129)
+    end
+end)
