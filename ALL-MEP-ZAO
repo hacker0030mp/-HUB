@@ -1,6 +1,6 @@
 -- =======================================================
--- สุริยันหยินหยาง HUB & RTS HUB - Custom UI + Kill System
--- ภาษาไทย 100% | ไอคอนลอยหมุนได้และลากได้ | ธีมสีเขียวมรกต
+-- สุริยันหยินหยาง HUB & RTS HUB - Delta Mobile Optimized
+-- ภาษาไทย 100% | ไอคอนหยินหยางลอยหมุนได้และลากได้ | ระบบ Kill ครบชุด
 -- =======================================================
 
 local Players = game:GetService("Players")
@@ -9,19 +9,30 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- ลบ UI เก่าทิ้งก่อนสร้างใหม่ (ป้องกันซ้ำซ้อน)
-if CoreGui:FindFirstChild("YinYangCustomUI") then
-    CoreGui.YinYangCustomUI:Destroy()
-end
+-- ป้องกันรันซ้ำซ้อน (เคลียร์ UI เก่าทิ้งก่อน)
+pcall(function()
+    if CoreGui:FindFirstChild("YinYangCustomUI") then
+        CoreGui.YinYangCustomUI:Destroy()
+    end
+end)
 
 -- สร้าง ScreenGui หลัก
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "YinYangCustomUI"
-ScreenGui.Parent = CoreGui
+ScreenGui.ResetOnSpawn = false
+
+-- รองรับ Delta และตัวรันบนมือถือ (ใส่ใน CoreGui หรือ PlayerGui ตามความเหมาะสม)
+pcall(function()
+    ScreenGui.Parent = CoreGui
+end)
+if not ScreenGui.Parent then
+    ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+end
+
 ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
 -- =======================================================
--- 1. สร้างไอคอนลูกบอลลอยได้ (Floating Rotating Logo)
+-- 1. สร้างไอคอนลูกบอลหยินหยางลอยได้ (Floating Rotating Logo)
 -- =======================================================
 local FloatingButton = Instance.new("ImageButton")
 FloatingButton.Name = "FloatingLogo"
@@ -30,22 +41,22 @@ FloatingButton.BackgroundColor3 = Color3.fromRGB(5, 14, 9)
 FloatingButton.BorderColor3 = Color3.fromRGB(16, 185, 129)
 FloatingButton.BorderSizePixel = 2
 FloatingButton.Position = UDim2.new(0.05, 0, 0.2, 0)
-FloatingButton.Size = UDim2.new(0, 60, 0, 60)
+FloatingButton.Size = UDim2.new(0, 65, 0, 65)
 FloatingButton.Image = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg"
 FloatingButton.ScaleType = Enum.ScaleType.Stretch
 FloatingButton.Active = true
-FloatingButton.Draggable = true -- เปิดให้ลากไปมาบนหน้าจอได้
+FloatingButton.Draggable = true -- รองรับการใช้นิ้วลากบนหน้าจอมือถือ
 
 local UICorner = Instance.new("UICorner", FloatingButton)
 UICorner.CornerRadius = UDim.new(1, 0) -- ทรงกลม
 
--- ทำให้รูปภาพหมุน 360 องศาตลอดเวลา
+-- ทำให้รูปภาพหมุน 360 องศาตลอดเวลา (ลดโหลด CPU มือถือด้วย task.wait)
 task.spawn(function()
     local rotation = 0
     while FloatingButton and FloatingButton.Parent do
-        rotation = (rotation + 2) % 360
+        rotation = (rotation + 3) % 360
         FloatingButton.Rotation = rotation
-        task.wait(0.03)
+        task.wait(0.04)
     end
 end)
 
@@ -58,19 +69,19 @@ MainFrame.Parent = ScreenGui
 MainFrame.BackgroundColor3 = Color3.fromRGB(5, 14, 9)
 MainFrame.BorderColor3 = Color3.fromRGB(16, 185, 129)
 MainFrame.BorderSizePixel = 2
-MainFrame.Position = UDim2.new(0.5, -250, 0.5, -175)
-MainFrame.Size = UDim2.new(0, 520, 0, 380)
-MainFrame.Visible = false -- ซ่อนไว้ก่อน กดที่ไอคอนลอยถึงจะเปิด
+MainFrame.Position = UDim2.new(0.5, -225, 0.5, -170)
+MainFrame.Size = UDim2.new(0, 450, 0, 360)
+MainFrame.Visible = false -- ซ่อนไว้ก่อน กดที่ไอคอนลอยถึงจะแสดง
 
 local MainCorner = Instance.new("UICorner", MainFrame)
 MainCorner.CornerRadius = UDim.new(0, 12)
 
--- หัวข้อด้านบน (Header - แสดงค่ายผู้พัฒนา)
+-- หัวข้อด้านบน (Header - เครดิตผู้พัฒนาเดิม)
 local Header = Instance.new("Frame")
 Header.Name = "Header"
 Header.Parent = MainFrame
 Header.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
-Header.Size = UDim2.new(1, 0, 0, 40)
+Header.Size = UDim2.new(1, 0, 0, 42)
 
 local HeaderCorner = Instance.new("UICorner", Header)
 HeaderCorner.CornerRadius = UDim.new(0, 12)
@@ -78,20 +89,20 @@ HeaderCorner.CornerRadius = UDim.new(0, 12)
 local TitleLabel = Instance.new("TextLabel")
 TitleLabel.Parent = Header
 TitleLabel.BackgroundTransparency = 1
-TitleLabel.Size = UDim2.new(1, -40, 1, 0)
-TitleLabel.Position = UDim2.new(0, 10, 0, 0)
+TitleLabel.Size = UDim2.new(1, -45, 1, 0)
+TitleLabel.Position = UDim2.new(0, 12, 0, 0)
 TitleLabel.Font = Enum.Font.SourceSansBold
 TitleLabel.Text = "สุริยันหยินหยาง HUB & RTS HUB | โมโก้ ไมเกิร์น & ใจ"
 TitleLabel.TextColor3 = Color3.fromRGB(236, 253, 245)
-TitleLabel.TextSize = 13
+TitleLabel.TextSize = 12
 TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 -- ปุ่มปิดหน้าต่าง (X)
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Parent = Header
 CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
-CloseBtn.Position = UDim2.new(1, -35, 0.5, -12)
-CloseBtn.Size = UDim2.new(0, 24, 0, 24)
+CloseBtn.Position = UDim2.new(1, -36, 0.5, -13)
+CloseBtn.Size = UDim2.new(0, 26, 0, 26)
 CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -108,15 +119,15 @@ FloatingButton.MouseButton1Click:Connect(function()
 end)
 
 -- =======================================================
--- 3. ระบบแท็บและเนื้อหาภายใน (Tabs & Content)
+-- 3. ระบบเนื้อหาและปุ่มกดภายใน (Scrolling Menu)
 -- =======================================================
 local TabContainer = Instance.new("ScrollingFrame")
 TabContainer.Parent = MainFrame
 TabContainer.BackgroundTransparency = 1
-TabContainer.Position = UDim2.new(0, 10, 0, 50)
-TabContainer.Size = UDim2.new(1, -20, 1, -60)
-TabContainer.CanvasSize = UDim2.new(0, 0, 2.5, 0)
-TabContainer.ScrollBarThickness = 6
+TabContainer.Position = UDim2.new(0, 10, 0, 52)
+TabContainer.Size = UDim2.new(1, -20, 1, -62)
+TabContainer.CanvasSize = UDim2.new(0, 0, 2.2, 0)
+TabContainer.ScrollBarThickness = 5
 
 local UIListLayout = Instance.new("UIListLayout", TabContainer)
 UIListLayout.Padding = UDim.new(0, 10)
@@ -126,11 +137,11 @@ local function createSectionTitle(text)
     local lbl = Instance.new("TextLabel")
     lbl.Parent = TabContainer
     lbl.BackgroundTransparency = 1
-    lbl.Size = UDim2.new(1, 0, 0, 25)
+    lbl.Size = UDim2.new(1, 0, 0, 24)
     lbl.Font = Enum.Font.SourceSansBold
     lbl.Text = "--- " .. text .. " ---"
     lbl.TextColor3 = Color3.fromRGB(110, 231, 183)
-    lbl.TextSize = 15
+    lbl.TextSize = 14
     return lbl
 end
 
@@ -139,28 +150,28 @@ local function createButton(text, callback)
     local btn = Instance.new("TextButton")
     btn.Parent = TabContainer
     btn.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
-    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.Size = UDim2.new(1, 0, 0, 38)
     btn.Font = Enum.Font.SourceSansBold
     btn.Text = text
     btn.TextColor3 = Color3.fromRGB(236, 253, 245)
-    btn.TextSize = 15
+    btn.TextSize = 14
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
     
     btn.MouseButton1Click:Connect(callback)
     return btn
 end
 
--- ฟังก์ชันสร้างปุ่ม Toggle เปิด/ปิด
+-- ฟังก์ชันสร้างปุ่มเปิด/ปิด (Toggle)
 local function createToggle(text, defaultState, callback)
     local state = defaultState
     local btn = Instance.new("TextButton")
     btn.Parent = TabContainer
     btn.BackgroundColor3 = state and Color3.fromRGB(16, 185, 129) or Color3.fromRGB(31, 41, 55)
-    btn.Size = UDim2.new(1, 0, 0, 40)
+    btn.Size = UDim2.new(1, 0, 0, 38)
     btn.Font = Enum.Font.SourceSansBold
     btn.Text = text .. (state and " [เปิด]" or " [ปิด]")
     btn.TextColor3 = Color3.fromRGB(236, 253, 245)
-    btn.TextSize = 15
+    btn.TextSize = 14
     Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
     
     btn.MouseButton1Click:Connect(function()
@@ -173,7 +184,7 @@ local function createToggle(text, defaultState, callback)
 end
 
 -- =======================================================
--- [ บรรจุฟังก์ชันทั้งหมดรวมถึงระบบ Kill ]
+-- [ ฟังก์ชันการใช้งานระบบต่างๆ ]
 -- =======================================================
 
 createSectionTitle("⚔️ ระบบ Kill (การกำจัดเป้าหมาย)")
@@ -188,26 +199,25 @@ createButton("💥 วาร์ปไปฟัน/ฆ่าผู้เล่น
             if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                 local targetRoot = plr.Character.HumanoidRootPart
                 myRoot.CFrame = targetRoot.CFrame
-                task.wait(0.1) -- ขยับไปหาทีละคนเพื่อโจมตี
+                task.wait(0.15)
             end
         end
         myRoot.CFrame = originalPos
     end)
 end)
 
-createToggle("🎯 ล็อกเป้าหมายโจมตีอัตโนมัติ (Aimbot/Kill Aura)", false, function(state)
+createToggle("🎯 ล็อกเป้าหมายโจมตีอัตโนมัติ (Kill Aura)", false, function(state)
     _G.KillAura = state
     task.spawn(function()
         while _G.KillAura do
-            task.wait(0.2)
+            task.wait(0.3)
             pcall(function()
                 local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
                 if not myRoot then return end
                 for _, plr in pairs(Players:GetPlayers()) do
-                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRoot") then
+                    if plr ~= LocalPlayer and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
                         local enemyRoot = plr.Character.HumanoidRootPart
-                        if (myRoot.Position - enemyRoot.Position).Magnitude < 15 then
-                            -- โจมตีอัตโนมัติระยะประชิด
+                        if (myRoot.Position - enemyRoot.Position).Magnitude < 18 then
                             local tool = LocalPlayer.Character:FindFirstChildOfClass("Tool")
                             if tool then tool:Activate() end
                         end
@@ -235,7 +245,7 @@ end)
 
 createSectionTitle("⚙️ ระบบตั้งค่า UI และความปลอดภัย")
 
-createToggle("🔒 ล็อกไอคอนลอย (Lock Floating Icon)", false, function(state)
+createToggle("🔒 ล็อกตำแหน่งไอคอนลอย", false, function(state)
     FloatingButton.Draggable = not state
 end)
 
@@ -247,7 +257,7 @@ createButton("❌ ปิดและลบสคริปต์ทั้งห�
     ScreenGui:Destroy()
 end)
 
--- ระบบ ESP สากล
+-- ระบบ ESP รองรับมือถือ
 RunService.RenderStepped:Connect(function()
     if _G.PlayerESP then
         pcall(function()
@@ -257,7 +267,7 @@ RunService.RenderStepped:Connect(function()
                     if not head:FindFirstChild("CustomESP") then
                         local bb = Instance.new("BillboardGui", head)
                         bb.Name = "CustomESP"
-                        bb.Size = UDim2.new(0, 100, 0, 40)
+                        bb.Size = UDim2.new(0, 90, 0, 35)
                         bb.AlwaysOnTop = true
                         bb.StudsOffset = Vector3.new(0, 2, 0)
                         
@@ -266,7 +276,7 @@ RunService.RenderStepped:Connect(function()
                         txt.BackgroundTransparency = 1
                         txt.TextColor3 = Color3.fromRGB(16, 185, 129)
                         txt.TextStrokeTransparency = 0.4
-                        txt.TextSize = 14
+                        txt.TextSize = 13
                         txt.Font = Enum.Font.SourceSansBold
                         txt.Text = player.Name
                     end
@@ -285,4 +295,4 @@ RunService.RenderStepped:Connect(function()
     end
 end)
 
-print("สุริยันหยินหยาง Custom UI + Kill System โหลดสำเร็จ!")
+print("สุริยันหยินหยาง Custom UI โหลดใน Delta สำเร็จ!")
