@@ -23,7 +23,7 @@ WindUI:AddTheme({
 -- สร้างหน้าต่างหลัก
 local Window = WindUI:CreateWindow({
     Title = "สุริยันหยินหยาง HUB + RTS HUB | กิจกรรม Evade",
-    Icon = "bird",
+    Icon = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg",
     Author = "โมโก้ ไมเกิร์น & ใจ",
     Folder = "YinYang_RTS_Evade",
     Size = UDim2.fromOffset(600, 480),
