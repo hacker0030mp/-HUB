@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>สุริยันหยินหยาง HUB & RTS HUB</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0b0b0e;
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        /* พื้นหลังหยินหยางหมุนตามเข็มนาฬิกา */
+        .yin-yang-bg {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80vw;
+            height: 80vw;
+            max-width: 700px;
+            max-height: 700px;
+            opacity: 0.08;
+            pointer-events: none;
+            z-index: -1;
+            animation: rotateClockwise 30s linear infinite;
+        }
+        @keyframes rotateClockwise {
+            from { transform: translate(-50%, -50%) rotate(0deg); }
+            to { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #121216;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #374151;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #4b5563;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col relative selection:bg-white selection:text-black">
+
+    <!-- พื้นหลังหยินหยาง SVG -->
+    <div class="yin-yang-bg">
+        <svg viewBox="0 0 100 100" class="w-full h-full">
+            <circle cx="50" cy="50" r="48" fill="white" stroke="black" stroke-width="2"/>
+            <path d="M 50 2 A 48 48 0 0 1 50 98 A 24 24 0 0 1 50 50 A 24 24 0 0 0 50 2 Z" fill="black"/>
+            <circle cx="50" cy="26" r="7" fill="white"/>
+            <circle cx="50" cy="74" r="7" fill="black"/>
+        </svg>
+    </div>
+
+    <!-- แถบนำทาง (Navbar) -->
+    <header class="sticky top-0 z-50 bg-black/80 backdrop-blur-md border-b border-zinc-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="app.navigate('home')">
+                <div class="w-10 h-10 rounded-full border-2 border-white flex items-center justify-center bg-black overflow-hidden relative shadow-lg shadow-white/10 animate-spin" style="animation-duration: 15s;">
+                    <div class="w-1/2 h-full bg-white absolute left-0"></div>
+                </div>
+                <div>
+                    <h1 class="font-bold text-lg tracking-wider text-white">สุริยันหยินหยาง HUB</h1>
+                    <p class="text-xs text-zinc-400">&amp; RTS HUB Scripts</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-4">
+                <button onclick="app.navigate('home')" class="px-3 py-2 text-sm font-medium text-zinc-300 hover:text-white transition">หน้าหลัก</button>
+                <div id="authNavArea" class="flex items-center space-x-3">
+                    <!-- Dynamic Auth Buttons -->
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- เนื้อหาหลัก (Main Container) -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
+        <div id="appContainer">
+            <!-- Rendered by JS -->
+        </div>
+    </main>
+
+    <!-- Modal แจ้งเตือน / ป๊อปอัป -->
+    <div id="globalModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm hidden">
+        <div id="modalContent" class="bg-zinc-900 border border-zinc-800 rounded-2xl p-6 max-w-md w-full mx-4 shadow-2xl relative">
+            <!-- Content loaded dynamically -->
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-black/80 border-t border-zinc-800 py-6 mt-12 text-center text-xs text-zinc-500">
+        <p>&copy; 2026 สุริยันหยินหยาง HUB &amp; RTS HUB. All Rights Reserved. แหล่งรวมสคริปต์เกมสุดล้ำสมัย</p>
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // ข้อมูลตัวอย่างเริ่มต้น (Mock Data)
+        const defaultScripts = [
+            {
+                id: 1,
+                title: 'Blox Fruits OP Hub Script',
+                mediaUrl: 'https://placehold.co/600x400/111111/FFFFFF?text=Blox+Fruits+Script',
+                description: 'ระบบออโต้ฟาร์ม ผลตื่น, เควสคาทาคูริ, ออโต้ฮากิ, และวาปเกาะรวดเร็ว ปลอดภัย 100%',
+                type: 'No Key',
+                category: 'Roblox',
+                customGame: '',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/example/bloxfruits/main/script.lua"))()',
+                author: 'YinYangMaster',
+                createdAt: '2026-06-01'
+            },
+            {
+                id: 2,
+                title: 'Minecraft Auto-Miner & X-Ray',
+                mediaUrl: 'https://placehold.co/600x400/222222/FFFFFF?text=Minecraft+Script',
+                description: 'มองเห็นแร่ทะลุบล็อก และฟาร์มแร่อัตโนมัติ ปรับแต่งความเร็วได้',
+                type: 'Key System',
+                category: 'Minecraft',
+                customGame: '',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/example/minecraft/main/script.lua"))()',
+                author: 'RTS_Official',
+                createdAt: '2026-06-02'
+            },
+            {
+                id: 3,
+                title: 'Free Fire Auto Headshot VIP',
+                mediaUrl: 'https://placehold.co/600x400/333333/FFFFFF?text=FreeFire+Script',
+                description: 'ระบบล็อคเป้าอัตโนมัติ มองเห็นตำแหน่งศัตรูทั่วแผนที่',
+                type: 'Key System',
+                category: 'Free Fire',
+                customGame: '',
+                code: 'loadstring(game:HttpGet("https://raw.githubusercontent.com/example/freefire/main/script.lua"))()',
+                author: 'SunMoonDev',
+                createdAt: '2026-06-03'
+            }
+        ];
+
+        class ScriptHubApp {
+            constructor() {
+                this.currentUser = JSON.parse(localStorage.getItem('yy_user')) || null;
+                this.scripts = JSON.parse(localStorage.getItem('yy_scripts')) || defaultScripts;
+                this.currentRoute = 'home';
+                this.searchQuery = '';
+                this.selectedCategory = 'All';
+                this.init();
+            }
+
+            init() {
+                this.updateAuthNav();
+                this.navigate(this.currentRoute);
+            }
+
+            saveData() {
+                localStorage.setItem('yy_scripts', JSON.stringify(this.scripts));
+                localStorage.setItem('yy_user', JSON.stringify(this.currentUser));
+            }
+
+            navigate(route) {
+                this.currentRoute = route;
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                this.render();
+            }
+
+            updateAuthNav() {
+                const navArea = document.getElementById('authNavArea');
+                if (this.currentUser) {
+                    navArea.innerHTML = `
+                        <div class="flex items-center space-x-3">
+                            <span class="text-xs text-zinc-300 hidden sm:inline"><i class="fa-solid fa-user-circle text-white mr-1"></i> ${this.currentUser.username}</span>
+                            <button onclick="app.navigate('create')" class="bg-white text-black font-semibold text-xs px-3 py-2 rounded-lg hover:bg-zinc-200 transition shadow-md">
+                                <i class="fa-solid fa-plus mr-1"></i> สร้างสคริปต์
+                            </button>
+                            <button onclick="app.logout()" class="text-zinc-400 hover:text-red-400 text-xs px-2 py-2 transition" title="ออกจากระบบ">
+                                <i class="fa-solid fa-right-from-bracket"></i>
+                            </button>
+                        </div>
+                    `;
+                } else {
+                    navArea.innerHTML = `
+                        <button onclick="app.showAuthModal('login')" class="text-zinc-300 hover:text-white text-xs font-medium px-3 py-2 transition">เข้าสู่ระบบ</button>
+                        <button onclick="app.showAuthModal('register')" class="bg-white text-black text-xs font-semibold px-4 py-2 rounded-lg hover:bg-zinc-200 transition shadow-md">สมัครสมาชิก</button>
+                    `;
+                }
+            }
+
+            render() {
+                const container = document.getElementById('appContainer');
+                switch(this.currentRoute) {
+                    case 'home':
+                        container.innerHTML = this.renderHome();
+                        break;
+                    case 'create':
+                        if(!this.currentUser) {
+                            this.showToast('กรุณาเข้าสู่ระบบก่อนสร้างสคริปต์', 'error');
+                            this.navigate('home');
+                            return;
+                        }
+                        container.innerHTML = this.renderCreateForm();
+                        break;
+                    default:
+                        container.innerHTML = this.renderHome();
+                }
+            }
+
+            // --- หน้าหลัก (Home) ---
+            renderHome() {
+                const categories = ['All', 'Roblox', 'Minecraft', 'Free Fire', 'อื่นๆ'];
+                
+                const filtered = this.scripts.filter(s => {
+                    const gameName = s.category === 'อื่นๆ' ? (s.customGame || 'อื่นๆ') : s.category;
+                    const matchSearch = s.title.toLowerCase().includes(this.searchQuery.toLowerCase()) || 
+                                        s.description.toLowerCase().includes(this.searchQuery.toLowerCase()) ||
+                                        gameName.toLowerCase().includes(this.searchQuery.toLowerCase());
+                    const matchCat = this.selectedCategory === 'All' || s.category === this.selectedCategory;
+                    return matchSearch && matchCat;
+                });
+
+                return `
+                    <div class="space-y-8">
+                        <!-- Hero Section -->
+                        <div class="relative bg-gradient-to-r from-zinc-900 via-black to-zinc-900 border border-zinc-800 rounded-3xl p-8 md:p-12 text-center overflow-hidden shadow-2xl">
+                            <div class="absolute -right-10 -bottom-10 w-64 h-64 bg-white/5 rounded-full blur-3xl pointer-events-none"></div>
+                            <h2 class="text-3xl md:text-5xl font-extrabold text-white tracking-tight mb-4">
+                                สุริยันหยินหยาง HUB <span class="text-zinc-400">&amp; RTS HUB</span>
+                            </h2>
+                            <p class="text-zinc-400 max-w-2xl mx-auto text-sm md:text-base mb-8">
+                                แหล่งรวมสคริปต์เกมสุดทรงพลัง อัปเดตใหม่ตลอดเวลา ค้นหาสคริปต์ที่คุณต้องการได้ง่ายๆ ทันที
+                            </p>
+
+                            <!-- Search Bar -->
+                            <div class="max-w-xl mx-auto relative">
+                                <span class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none text-zinc-400">
+                                    <i class="fa-solid fa-magnifying-glass"></i>
+                                </span>
+                                <input type="text" id="searchInput" value="${this.searchQuery}" oninput="app.handleSearch(this.value)" placeholder="ค้นหาสคริปต์เกม, ชื่อ หรือหมวดหมู่..." class="w-full bg-zinc-950/80 border border-zinc-700 rounded-2xl pl-11 pr-4 py-4 text-sm text-white placeholder-zinc-500 focus:outline-none focus:border-white transition shadow-inner">
+                            </div>
+                        </div>
+
+                        <!-- Categories Filter -->
+                        <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+                            ${categories.map(cat => `
+                                <button onclick="app.setCategory('${cat}')" class="whitespace-nowrap px-4 py-2 rounded-xl text-xs font-semibold transition ${this.selectedCategory === cat ? 'bg-white text-black shadow-lg shadow-white/10' : 'bg-zinc-900 text-zinc-400 hover:text-white border border-zinc-800'}">
+                                    ${cat}
+                                </button>
+                            `).join('')}
+                        </div>
+
+                        <!-- Scripts Grid -->
+                        <div>
+                            <div class="flex items-center justify-between mb-6">
+                                <h3 class="text-xl font-bold text-white flex items-center">
+                                    <i class="fa-solid fa-code text-white mr-2"></i> สคริปต์ทั้งหมด (${filtered.length})
+                                </h3>
+                            </div>
+
+                            ${filtered.length === 0 ? `
+                                <div class="text-center py-20 bg-zinc-900/40 border border-zinc-800 rounded-3xl">
+                                    <i class="fa-solid fa-face-sad-tear text-4xl text-zinc-600 mb-3"></i>
+                                    <p class="text-zinc-400 text-sm">ไม่พบสคริปต์ที่คุณค้นหา ลองเปลี่ยนคำค้นหาดูสิครับ</p>
+                                </div>
+                            ` : `
+                                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                    ${filtered.map(s => `
+                                        <div class="bg-zinc-900/80 border border-zinc-800 rounded-2xl overflow-hidden flex flex-col justify-between hover:border-zinc-600 transition group shadow-xl">
+                                            <div>
+                                                <div class="relative h-48 bg-zinc-950 overflow-hidden">
+                                                    <img src="${s.mediaUrl}" onerror="this.src='https://placehold.co/600x400/111/FFF?text=Script+Image'" alt="${s.title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-500">
+                                                    <div class="absolute top-3 left-3 bg-black/80 backdrop-blur-md text-white text-[10px] font-bold px-2.5 py-1 rounded-lg border border-zinc-700">
+                                                        ${s.type}
+                                                    </div>
+                                                    <div class="absolute top-3 right-3 bg-zinc-900/80 backdrop-blur-md text-zinc-300 text-[10px] px-2.5 py-1 rounded-lg border border-zinc-700">
+                                                        ${s.category === 'อื่นๆ' && s.customGame ? s.customGame : s.category}
+                                                    </div>
+                                                </div>
+                                                <div class="p-5 space-y-2">
+                                                    <h4 class="font-bold text-white text-base line-clamp-1">${s.title}</h4>
+                                                    <p class="text-zinc-400 text-xs line-clamp-2 leading-relaxed">${s.description || 'ไม่มีคำอธิบาย'}</p>
+                                                </div>
+                                            </div>
+                                            <div class="p-5 pt-0">
+                                                <!-- ปุ่ม Get Script ที่มีขอบสีขาวล้อมรอบ -->
+                                                <button onclick="app.startGetScriptProcess(${s.id})" class="w-full py-3 rounded-xl border border-white text-white font-semibold text-xs hover:bg-white hover:text-black transition flex items-center justify-center space-x-2 shadow-sm">
+                                                    <i class="fa-solid fa-download"></i>
+                                                    <span>Get Script</span>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            `}
+                        </div>
+                    </div>
+                `;
+            }
+
+            // --- หน้าสร้างสคริปต์ (Create Script) ---
+            renderCreateForm() {
+                return `
+                    <div class="max-w-2xl mx-auto bg-zinc-900 border border-zinc-800 rounded-3xl p-6 md:p-10 shadow-2xl">
+                        <div class="flex items-center justify-between mb-8 pb-4 border-b border-zinc-800">
+                            <div>
+                                <h2 class="text-2xl font-bold text-white">สร้างสคริปต์ใหม่</h2>
+                                <p class="text-xs text-zinc-400 mt-1">แชร์สคริปต์ของคุณให้เพื่อนๆ ใน Hub ใช้งาน</p>
+                            </div>
+                            <button onclick="app.navigate('home')" class="text-zinc-400 hover:text-white text-sm">
+                                <i class="fa-solid fa-xmark text-lg"></i>
+                            </button>
+                        </div>
+
+                        <form id="createScriptForm" onsubmit="app.handleCreateScript(event)" class="space-y-6">
+                            <!-- 2. ใส่ชื่อ -->
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-300 mb-2">2. ใส่ชื่อสคริปต์ <span class="text-red-400">*</span></label>
+                                <input type="text" id="scriptTitle" required placeholder="เช่น Blox Fruits Hub อัปเดตใหม่..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white transition">
+                            </div>
+
+                            <!-- 2.1 ใส่รูปภาพหรือวิดีโอ -->
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-300 mb-2">2.1 ใส่รูปภาพหรือวิดีโอ (Image/Video URL)</label>
+                                <input type="url" id="scriptMedia" placeholder="https://example.com/image.jpg (เว้นว่างไว้จะใช้ภาพตัวอย่าง)" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white transition">
+                            </div>
+
+                            <!-- 2.2 คำอธิบาย -->
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-300 mb-2">2.2 คำอธิบายสคริปต์ (จะใส่หรือไม่ใส่ก็ได้)</label>
+                                <textarea id="scriptDesc" rows="3" placeholder="อธิบายรายละเอียดหรือวิธีใช้งานสคริปต์..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white transition resize-none"></textarea>
+                            </div>
+
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- 3. เลือกประเภท -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-zinc-300 mb-2">3. เลือกประเภท <span class="text-red-400">*</span></label>
+                                    <select id="scriptType" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white transition">
+                                        <option value="Key System">Key System</option>
+                                        <option value="No Key">No Key</option>
+                                    </select>
+                                </div>
+
+                                <!-- 4. ให้จัดอยู่ในหมวดหมู่ -->
+                                <div>
+                                    <label class="block text-xs font-semibold text-zinc-300 mb-2">4. จัดอยู่ในหมวดหมู่ <span class="text-red-400">*</span></label>
+                                    <select id="scriptCategory" onchange="app.toggleCustomCategoryInput(this.value)" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-white transition">
+                                        <option value="Roblox">Roblox</option>
+                                        <option value="Minecraft">Minecraft</option>
+                                        <option value="Free Fire">Free Fire</option>
+                                        <option value="อื่นๆ">อื่นๆ</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- ช่องสำหรับพิมพ์ชื่อเกมเอง หากเลือกหมวดหมู่ "อื่นๆ" -->
+                            <div id="customCategoryGroup" class="hidden">
+                                <label class="block text-xs font-semibold text-zinc-300 mb-2">ระบุชื่อเกม / รายละเอียดหมวดหมู่เพิ่มเติม <span class="text-red-400">*</span></label>
+                                <input type="text" id="customCategoryInput" placeholder="กรอกชื่อเกมของคุณ..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white transition">
+                            </div>
+
+                            <!-- 5. ยืนยันว่าเป็นมนุษย์หรือไม่ -->
+                            <div class="bg-zinc-950 border border-zinc-800 p-4 rounded-xl flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <input type="checkbox" id="humanCheckCreate" required class="w-5 h-5 accent-white rounded cursor-pointer">
+                                    <label for="humanCheckCreate" class="text-xs text-zinc-300 font-medium cursor-pointer">5. ยืนยันว่าคุณไม่ใช่โปรแกรมอัตโนมัติ (I'm not a robot)</label>
+                                </div>
+                                <i class="fa-solid fa-shield-halved text-zinc-500 text-lg"></i>
+                            </div>
+
+                            <!-- 6. ใส่สคริปต์ -->
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-300 mb-2">6. ใส่สคริปต์ (Script Code) <span class="text-red-400">*</span></label>
+                                <textarea id="scriptCode" required rows="4" placeholder="loadstring(game:HttpGet(...))()" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-xs font-mono text-zinc-200 placeholder-zinc-600 focus:outline-none focus:border-white transition resize-none"></textarea>
+                            </div>
+
+                            <!-- 7. ยืนยันในการสร้าง -->
+                            <button type="submit" class="w-full py-4 bg-white text-black font-bold text-sm rounded-xl hover:bg-zinc-200 transition shadow-lg flex items-center justify-center space-x-2">
+                                <i class="fa-solid fa-check"></i>
+                                <span>7. ยืนยันในการสร้างสคริปต์</span>
+                            </button>
+                        </form>
+                    </div>
+                `;
+            }
+
+            toggleCustomCategoryInput(value) {
+                const group = document.getElementById('customCategoryGroup');
+                const input = document.getElementById('customCategoryInput');
+                if (value === 'อื่นๆ') {
+                    group.classList.remove('hidden');
+                    input.required = true;
+                } else {
+                    group.classList.add('hidden');
+                    input.required = false;
+                }
+            }
+
+            // --- ระบบ Get Script กระบวนการบังคับทำ 2 ขั้นตอน ---
+            startGetScriptProcess(scriptId) {
+                const script = this.scripts.find(s => s.id === scriptId);
+                if(!script) return;
+
+                const modal = document.getElementById('globalModal');
+                const content = document.getElementById('modalContent');
+                
+                // เริ่มต้นขั้นตอนที่ 1: ดูโฆษณาวิดีโอ Google Ads จำลอง 20 วินาที
+                let countdown = 20;
+                content.innerHTML = `
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
+                            <span class="text-xs font-bold text-amber-400 flex items-center">
+                                <i class="fa-brands fa-google mr-1.5"></i> Google Sponsored Ads
+                            </span>
+                            <span class="text-[10px] text-zinc-500">ขั้นตอนที่ 1 จาก 2</span>
+                        </div>
+
+                        <!-- ตัวเล่นวิดีโอโฆษณาจำลอง -->
+                        <div class="relative bg-black rounded-2xl overflow-hidden border border-zinc-800 aspect-video flex flex-col items-center justify-center p-4 text-center">
+                            <div class="absolute top-3 left-3 bg-red-600 text-white text-[9px] font-bold px-2 py-0.5 rounded shadow">
+                                AD • Live
+                            </div>
+                            <div class="w-12 h-12 rounded-full border-2 border-white/20 border-t-white animate-spin mb-3"></div>
+                            <p class="text-xs font-semibold text-white">กำลังเล่นวิดีโอโฆษณา...</p>
+                            <p class="text-[10px] text-zinc-400 mt-1">โปรดรับชมโฆษณาเพื่อสนับสนุนเว็บแจกสคริปต์</p>
+
+                            <!-- Progress Bar -->
+                            <div class="absolute bottom-0 left-0 right-0 h-1.5 bg-zinc-800">
+                                <div id="adProgressBar" class="h-full bg-white transition-all duration-1000" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center justify-between bg-zinc-950 p-3 rounded-xl border border-zinc-800">
+                            <div class="text-xs text-zinc-300 font-medium">รอโฆษณาจบใน:</div>
+                            <div id="adCountdown" class="text-lg font-black text-white font-mono">${countdown}s</div>
+                        </div>
+
+                        <button id="skipAdBtn" disabled class="w-full py-3 bg-zinc-800 text-zinc-500 font-bold text-xs rounded-xl cursor-not-allowed transition">
+                            กรุณารอวิดีโอโฆษณาเล่นจนจบ (20 วินาที)
+                        </button>
+                    </div>
+                `;
+
+                modal.classList.remove('hidden');
+
+                const interval = setInterval(() => {
+                    countdown--;
+                    const countdownEl = document.getElementById('adCountdown');
+                    const progressEl = document.getElementById('adProgressBar');
+                    
+                    if (countdownEl) countdownEl.innerText = `${countdown}s`;
+                    if (progressEl) progressEl.style.width = `${((20 - countdown) / 20) * 100}%`;
+
+                    if (countdown <= 0) {
+                        clearInterval(interval);
+                        const btn = document.getElementById('skipAdBtn');
+                        if (btn) {
+                            btn.disabled = false;
+                            btn.className = "w-full py-3.5 bg-white text-black font-bold text-xs rounded-xl hover:bg-zinc-200 transition shadow-lg flex items-center justify-center space-x-2 cursor-pointer";
+                            btn.innerHTML = '<span>ไปขั้นตอนถัดไป (ข้ามโฆษณา)</span> <i class="fa-solid fa-arrow-right"></i>';
+                            btn.onclick = () => app.startHumanVerificationStep(scriptId);
+                        }
+                    }
+                }, 1000);
+            }
+
+            // ขั้นตอนที่ 2: ยืนยันว่าคุณเป็นมนุษย์หรือไม่ (นับถอยหลัง 10 วินาที)
+            startHumanVerificationStep(scriptId) {
+                const script = this.scripts.find(s => s.id === scriptId);
+                const content = document.getElementById('modalContent');
+
+                content.innerHTML = `
+                    <div class="space-y-5">
+                        <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
+                            <span class="text-xs font-bold text-emerald-400 flex items-center">
+                                <i class="fa-solid fa-shield-halved mr-1.5"></i> Human Verification
+                            </span>
+                            <span class="text-[10px] text-zinc-500">ขั้นตอนที่ 2 จาก 2</span>
+                        </div>
+
+                        <div class="text-center space-y-2">
+                            <h3 class="text-base font-bold text-white">ยืนยันว่าคุณเป็นมนุษย์หรือไม่</h3>
+                            <p class="text-xs text-zinc-400">โปรดคลิกเครื่องหมายถูก และรอระบบตรวจสอบสักครู่</p>
+                        </div>
+
+                        <div class="bg-zinc-950 border border-zinc-800 p-4 rounded-xl flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <input type="checkbox" id="modalHumanCheck" onchange="app.triggerHumanTimer(this, ${scriptId})" class="w-5 h-5 accent-white rounded cursor-pointer">
+                                <label for="modalHumanCheck" class="text-xs text-zinc-300 font-medium cursor-pointer">ฉันไม่ใช่โปรแกรมอัตโนมัติ (I am Human)</label>
+                            </div>
+                            <i class="fa-solid fa-robot text-zinc-600 text-lg"></i>
+                        </div>
+
+                        <div id="verificationTimerContainer" class="hidden bg-zinc-950 border border-zinc-800 p-4 rounded-xl text-center space-y-2">
+                            <div class="flex items-center justify-center space-x-2 text-xs text-zinc-300">
+                                <i class="fa-solid fa-spinner animate-spin text-white"></i>
+                                <span>กำลังตรวจสอบระบบความปลอดภัย...</span>
+                            </div>
+                            <div id="humanCountdown" class="text-2xl font-black text-white font-mono">10s</div>
+                        </div>
+
+                        <button id="finalGetScriptBtn" disabled class="w-full py-3.5 bg-zinc-800 text-zinc-500 font-bold text-xs rounded-xl cursor-not-allowed transition">
+                            โปรดยืนยันตัวตนก่อนรับสคริปต์
+                        </button>
+                    </div>
+                `;
+            }
+
+            triggerHumanTimer(checkbox, scriptId) {
+                if(!checkbox.checked) return;
+                
+                checkbox.disabled = true;
+                const timerContainer = document.getElementById('verificationTimerContainer');
+                timerContainer.classList.remove('hidden');
+
+                let countdown = 10;
+                const script = this.scripts.find(s => s.id === scriptId);
+
+                const interval = setInterval(() => {
+                    countdown--;
+                    const countdownEl = document.getElementById('humanCountdown');
+                    if(countdownEl) countdownEl.innerText = `${countdown}s`;
+
+                    if(countdown <= 0) {
+                        clearInterval(interval);
+                        const btn = document.getElementById('finalGetScriptBtn');
+                        if(btn) {
+                            btn.disabled = false;
+                            btn.className = "w-full py-3.5 bg-white text-black font-bold text-xs rounded-xl hover:bg-zinc-200 transition shadow-lg flex items-center justify-center space-x-2 cursor-pointer";
+                            btn.innerHTML = '<i class="fa-solid fa-copy"></i> <span>คัดลอกสคริปต์ (Copy Script)</span>';
+                            btn.onclick = () => app.finishAndCopyScript(script.code);
+                        }
+                    }
+                }, 1000);
+            }
+
+            finishAndCopyScript(code) {
+                this.copyToClipboard(code);
+                const content = document.getElementById('modalContent');
+                content.innerHTML = `
+                    <div class="text-center space-y-4 py-4">
+                        <div class="w-14 h-14 bg-emerald-500/20 text-emerald-400 rounded-full flex items-center justify-center mx-auto text-2xl border border-emerald-500/30">
+                            <i class="fa-solid fa-check"></i>
+                        </div>
+                        <h3 class="text-lg font-bold text-white">ผ่านการตรวจสอบเรียบร้อย!</h3>
+                        <p class="text-xs text-zinc-400">คัดลอกสคริปต์ลงในคลิปบอร์ดของคุณสำเร็จแล้ว นำไปวางในตัวรันเกมได้ทันที</p>
+                        
+                        <div class="bg-zinc-950 border border-zinc-800 p-3.5 rounded-xl text-left">
+                            <p class="text-[10px] text-zinc-400 font-mono line-clamp-3 leading-relaxed">${code}</p>
+                        </div>
+
+                        <button onclick="app.closeModal()" class="w-full py-3 bg-white text-black font-bold text-xs rounded-xl hover:bg-zinc-200 transition">ปิดหน้าต่าง</button>
+                    </div>
+                `;
+            }
+
+            // --- ระบบจัดการฟอร์มสร้างสคริปต์ ---
+            handleCreateScript(e) {
+                e.preventDefault();
+                const title = document.getElementById('scriptTitle').value.trim();
+                const mediaUrl = document.getElementById('scriptMedia').value.trim() || 'https://placehold.co/600x400/222/FFF?text=Custom+Script';
+                const description = document.getElementById('scriptDesc').value.trim();
+                const type = document.getElementById('scriptType').value;
+                const category = document.getElementById('scriptCategory').value;
+                const customGame = document.getElementById('customCategoryInput')?.value.trim() || '';
+                const code = document.getElementById('scriptCode').value.trim();
+
+                const newScript = {
+                    id: Date.now(),
+                    title,
+                    mediaUrl,
+                    description,
+                    type,
+                    category,
+                    customGame,
+                    code,
+                    author: this.currentUser.username,
+                    createdAt: new Date().toISOString().split('T')[0]
+                };
+
+                this.scripts.unshift(newScript);
+                this.saveData();
+                this.showToast('สร้างสคริปต์สำเร็จเรียบร้อยแล้ว!', 'success');
+                this.navigate('home');
+            }
+
+            // --- ระบบ Login / Register Modal ---
+            showAuthModal(mode) {
+                const modal = document.getElementById('globalModal');
+                const content = document.getElementById('modalContent');
+                const isLogin = mode === 'login';
+
+                content.innerHTML = `
+                    <div class="space-y-6">
+                        <div class="flex items-center justify-between pb-3 border-b border-zinc-800">
+                            <h3 class="text-lg font-bold text-white">${isLogin ? 'เข้าสู่ระบบ' : 'สมัครสมาชิก'}</h3>
+                            <button onclick="app.closeModal()" class="text-zinc-400 hover:text-white"><i class="fa-solid fa-xmark"></i></button>
+                        </div>
+
+                        <form onsubmit="app.handleAuth(event, '${mode}')" class="space-y-4">
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-300 mb-1">ชื่อผู้ใช้ (Username)</label>
+                                <input type="text" id="authUsername" required placeholder="ระบุชื่อผู้ใช้ของคุณ..." class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white transition">
+                            </div>
+                            <div>
+                                <label class="block text-xs font-semibold text-zinc-300 mb-1">รหัสผ่าน (Password)</label>
+                                <input type="password" id="authPassword" required placeholder="••••••••" class="w-full bg-zinc-950 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white placeholder-zinc-600 focus:outline-none focus:border-white transition">
+                            </div>
+
+                            <button type="submit" class="w-full py-3.5 bg-white text-black font-bold text-xs rounded-xl hover:bg-zinc-200 transition shadow-lg">
+                                ${isLogin ? 'เข้าสู่ระบบ' : 'ยืนยันการสมัครสมาชิก'}
+                            </button>
+                        </form>
+                    </div>
+                `;
+                modal.classList.remove('hidden');
+            }
+
+            handleAuth(e, mode) {
+                e.preventDefault();
+                const username = document.getElementById('authUsername').value.trim();
+                
+                this.currentUser = { username };
+                this.saveData();
+                this.updateAuthNav();
+                this.closeModal();
+                this.showToast(mode === 'login' ? 'เข้าสู่ระบบสำเร็จ!' : 'สมัครสมาชิกสำเร็จ!', 'success');
+                this.navigate('home');
+            }
+
+            logout() {
+                this.currentUser = null;
+                localStorage.removeItem('yy_user');
+                this.updateAuthNav();
+                this.showToast('ออกจากระบบเรียบร้อยแล้ว', 'info');
+                this.navigate('home');
+            }
+
+            closeModal() {
+                document.getElementById('globalModal').classList.add('hidden');
+            }
+
+            handleSearch(query) {
+                this.searchQuery = query;
+                // re-render grid without full reload to preserve focus
+                const container = document.getElementById('appContainer');
+                // Simple state update helper
+                const currentScroll = window.scrollY;
+                this.render();
+                window.scrollTo({ top: currentScroll });
+                const searchInput = document.getElementById('searchInput');
+                if(searchInput) {
+                    searchInput.focus();
+                    searchInput.setSelectionRange(searchInput.value.length, searchInput.value.length);
+                }
+            }
+
+            setCategory(cat) {
+                this.selectedCategory = cat;
+                this.render();
+            }
+
+            copyToClipboard(text) {
+                if (navigator.clipboard && navigator.clipboard.writeText) {
+                    navigator.clipboard.writeText(text).catch(() => {
+                        this.fallbackCopyText(text);
+                    });
+                } else {
+                    this.fallbackCopyText(text);
+                }
+            }
+
+            fallbackCopyText(text) {
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (err) {
+                    console.error('ไม่สามารถคัดลอกข้อความได้', err);
+                }
+                document.body.removeChild(textArea);
+            }
+
+            showToast(message, type = 'success') {
+                const toast = document.createElement('div');
+                toast.className = `fixed bottom-6 right-6 z-50 px-5 py-3 rounded-2xl text-xs font-semibold shadow-2xl transition transform duration-300 translate-y-10 opacity-0 flex items-center space-x-2 border ${
+                    type === 'success' ? 'bg-zinc-900 border-emerald-500/50 text-emerald-400' : 
+                    type === 'error' ? 'bg-zinc-900 border-red-500/50 text-red-400' : 
+                    'bg-zinc-900 border-zinc-700 text-white'
+                }`;
+                toast.innerHTML = `
+                    <i class="fa-solid ${type === 'success' ? 'fa-circle-check' : type === 'error' ? 'fa-circle-exclamation' : 'fa-circle-info'} text-base"></i>
+                    <span>${message}</span>
+                `;
+                document.body.appendChild(toast);
+
+                setTimeout(() => {
+                    toast.classList.remove('translate-y-10', 'opacity-0');
+                }, 50);
+
+                setTimeout(() => {
+                    toast.classList.add('translate-y-10', 'opacity-0');
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        }
+
+        // เริ่มต้นใช้งานแอป
+        const app = new ScriptHubApp();
+    </script>
+</body>
+</html>
