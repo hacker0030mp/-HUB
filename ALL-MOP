@@ -9,17 +9,10 @@ local UserInputService = game:GetService("UserInputService")
 local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- รายการคีย์ตระกูล YIN-YING ทั้ง 100 คีย์
+-- รายการคีย์ตระกูล YIN-YING ทั้ง 1 คีย์
 local ValidKeys = {
-    ["YIN-YING-Xzr43#"] = true,
+    ["YIN_YING"] = true,
 }
-
--- เคลียร์ UI เก่าทิ้ง
-pcall(function()
-    if CoreGui:FindFirstChild("YinYangSystemUI") then
-        CoreGui.YinYangSystemUI:Destroy()
-    end
-end)
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "YinYangSystemUI"
@@ -29,15 +22,6 @@ ScreenGui.ResetOnSpawn = false
 -- =======================================================
 -- 1. หน้าต่างตรวจสอบคีย์ (Key System Frame)
 -- =======================================================
-local KeyFrame = Instance.new("Frame")
-KeyFrame.Name = "KeyFrame"
-KeyFrame.Parent = ScreenGui
-KeyFrame.BackgroundColor3 = Color3.fromRGB(5, 14, 9)
-KeyFrame.BorderColor3 = Color3.fromRGB(16, 185, 129)
-KeyFrame.BorderSizePixel = 2
-KeyFrame.Position = UDim2.new(0.5, -200, 0.5, -120)
-KeyFrame.Size = UDim2.new(0, 400, 0, 240)
-Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 12)
 
 local KeyHeader = Instance.new("Frame")
 KeyHeader.Parent = KeyFrame
