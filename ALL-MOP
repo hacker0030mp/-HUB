@@ -1,18 +1,21 @@
 -- =======================================================
 -- สุริยันหยินหยาง HUB & RTS HUB - Custom UI 100%
 -- ภาษาไทย | ธีมสีเขียวมรกต | รองรับ Delta บนมือถือ
+-- ระบบคีย์ถาวร (Auto Load Saved Key)
 -- =======================================================
 
 local Players = game:GetService("Players")
 local CoreGui = game:GetService("CoreGui")
-local UserInputService = game:GetService("UserInputService")
-local RunService = game:GetService("RunService")
 local LocalPlayer = Players.LocalPlayer
 
--- รายการคีย์ตระกูล YIN-YING ทั้ง 1 คีย์
-local ValidKeys = {
-    ["YIN_YING"] = true,
-}
+-- ลบ UI เก่าออกก่อนหากรันซ้ำ
+if CoreGui:FindFirstChild("YinYangSystemUI") then
+    CoreGui.YinYangSystemUI:Destroy()
+end
+
+-- คีย์ถาวรของระบบ
+local PERMANENT_KEY = "YIN_YING"
+local KEY_FILE_NAME = "YinYangHub_SavedKey.txt"
 
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "YinYangSystemUI"
@@ -20,55 +23,10 @@ ScreenGui.Parent = CoreGui
 ScreenGui.ResetOnSpawn = false
 
 -- =======================================================
--- 1. หน้าต่างตรวจสอบคีย์ (Key System Frame)
+-- ฟังก์ชันเปิดหน้าต่างเมนูหลัก (Main HUB)
 -- =======================================================
-
-local KeyHeader = Instance.new("Frame")
-KeyHeader.Parent = KeyFrame
-KeyHeader.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
-KeyHeader.Size = UDim2.new(1, 0, 0, 35)
-Instance.new("UICorner", KeyHeader).CornerRadius = UDim.new(0, 12)
-
-local KeyTitle = Instance.new("TextLabel")
-KeyTitle.Parent = KeyHeader
-KeyTitle.BackgroundTransparency = 1
-KeyTitle.Size = UDim2.new(1, 0, 1, 0)
-KeyTitle.Font = Enum.Font.SourceSansBold
-KeyTitle.Text = "สุริยันหยินหยาง HUB | ระบบตรวจสอบคีย์"
-KeyTitle.TextColor3 = Color3.fromRGB(236, 253, 245)
-KeyTitle.TextSize = 14
-
-local KeyBox = Instance.new("TextBox")
-KeyBox.Parent = KeyFrame
-KeyBox.BackgroundColor3 = Color3.fromRGB(15, 28, 20)
-KeyBox.BorderColor3 = Color3.fromRGB(16, 185, 129)
-KeyBox.Position = UDim2.new(0.1, 0, 0.3, 0)
-KeyBox.Size = UDim2.new(0.8, 0, 0, 45)
-KeyBox.Font = Enum.Font.SourceSans
-KeyBox.PlaceholderText = "กรอกคีย์ (YIN-YING-...) ที่นี่"
-KeyBox.Text = ""
-KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-KeyBox.TextSize = 14
-Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
-
-local SubmitBtn = Instance.new("TextButton")
-SubmitBtn.Parent = KeyFrame
-SubmitBtn.BackgroundColor3 = Color3.fromRGB(16, 185, 129)
-SubmitBtn.Position = UDim2.new(0.1, 0, 0.6, 0)
-SubmitBtn.Size = UDim2.new(0.8, 0, 0, 45)
-SubmitBtn.Font = Enum.Font.SourceSansBold
-SubmitBtn.Text = "ยืนยันและเข้าสู่ระบบ"
-SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-SubmitBtn.TextSize = 16
-Instance.new("UICorner", SubmitBtn).CornerRadius = UDim.new(0, 8)
-
--- ฟังก์ชันเปิดหน้าต่างเมนูหลักหลังจากผ่านคีย์
 local function OpenMainHub()
-    KeyFrame:Destroy()
-
-    -- =======================================================
-    -- 2. ไอคอนลูกบอลหยินหยางลอยได้ (Floating Rotating Logo)
-    -- =======================================================
+    -- 1. ไอคอนลูกบอลหยินหยางลอยได้ (Floating Rotating Logo)
     local FloatingButton = Instance.new("ImageButton")
     FloatingButton.Name = "FloatingLogo"
     FloatingButton.Parent = ScreenGui
@@ -80,7 +38,7 @@ local function OpenMainHub()
     FloatingButton.Image = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg"
     FloatingButton.ScaleType = Enum.ScaleType.Stretch
     FloatingButton.Active = true
-    FloatingButton.Draggable = true -- ลากบนจอมือถือได้
+    FloatingButton.Draggable = true
 
     Instance.new("UICorner", FloatingButton).CornerRadius = UDim.new(1, 0)
 
@@ -94,9 +52,7 @@ local function OpenMainHub()
         end
     end)
 
-    -- =======================================================
-    -- 3. หน้าต่างเมนูหลัก (Main Frame)
-    -- =======================================================
+    -- 2. หน้าต่างเมนูหลัก (Main Frame)
     local MainFrame = Instance.new("Frame")
     MainFrame.Name = "MainFrame"
     MainFrame.Parent = ScreenGui
@@ -106,9 +62,11 @@ local function OpenMainHub()
     MainFrame.Position = UDim2.new(0.5, -225, 0.5, -170)
     MainFrame.Size = UDim2.new(0, 450, 0, 360)
     MainFrame.Visible = false
+    MainFrame.Active = true
+    MainFrame.Draggable = true
     Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
 
-    -- หัวข้อค่ายผู้พัฒนา
+    -- หัวข้อ
     local Header = Instance.new("Frame")
     Header.Parent = MainFrame
     Header.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
@@ -121,9 +79,9 @@ local function OpenMainHub()
     TitleLabel.Size = UDim2.new(1, -45, 1, 0)
     TitleLabel.Position = UDim2.new(0, 12, 0, 0)
     TitleLabel.Font = Enum.Font.SourceSansBold
-    TitleLabel.Text = "สุริยันหยินหยาง HUB & RTS HUB | โมโก้ ไมเกิร์น & ใจ"
+    TitleLabel.Text = "สุริยันหยินหยาง HUB & RTS HUB"
     TitleLabel.TextColor3 = Color3.fromRGB(236, 253, 245)
-    TitleLabel.TextSize = 12
+    TitleLabel.TextSize = 14
     TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
 
     -- ปุ่มปิด (X)
@@ -152,7 +110,7 @@ local function OpenMainHub()
     Content.BackgroundTransparency = 1
     Content.Position = UDim2.new(0, 10, 0, 50)
     Content.Size = UDim2.new(1, -20, 1, -60)
-    Content.CanvasSize = UDim2.new(0, 0, 2, 0)
+    Content.CanvasSize = UDim2.new(0, 0, 0, 260)
     Content.ScrollBarThickness = 5
 
     local UIList = Instance.new("UIListLayout", Content)
@@ -171,7 +129,7 @@ local function OpenMainHub()
         btn.MouseButton1Click:Connect(cb)
     end
 
-    -- ฟังก์ชัน Kill & Utility
+    -- ฟังก์ชันปุ่มต่างๆ
     AddBtn("💥 วาร์ปฆ่าผู้เล่นทุกคนในแมพ (Kill All)", function()
         pcall(function()
             local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
@@ -207,18 +165,103 @@ local function OpenMainHub()
     end)
 end
 
--- กดปุ่มยืนยันคีย์
-SubmitBtn.MouseButton1Click:Connect(function()
-    if ValidKeys[KeyBox.Text] then
-        SubmitBtn.Text = "คีย์ถูกต้อง! กำลังเข้าสู่ระบบ..."
-        SubmitBtn.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
-        task.wait(1)
-        OpenMainHub()
-    else
-        SubmitBtn.Text = "คีย์ไม่ถูกต้อง! ลองใหม่อีกครั้ง"
-        SubmitBtn.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
-        task.wait(1.5)
-        SubmitBtn.Text = "ยืนยันและเข้าสู่ระบบ"
-        SubmitBtn.BackgroundColor3 = Color3.fromRGB(16, 185, 129)
+-- =======================================================
+-- ฟังก์ชันสร้าง UI ตรวจสอบคีย์ (Key System Frame)
+-- =======================================================
+local function CreateKeyUI()
+    local KeyFrame = Instance.new("Frame")
+    KeyFrame.Name = "KeyFrame"
+    KeyFrame.Parent = ScreenGui
+    KeyFrame.BackgroundColor3 = Color3.fromRGB(5, 14, 9)
+    KeyFrame.BorderColor3 = Color3.fromRGB(16, 185, 129)
+    KeyFrame.BorderSizePixel = 2
+    KeyFrame.Position = UDim2.new(0.5, -160, 0.5, -100)
+    KeyFrame.Size = UDim2.new(0, 320, 0, 200)
+    KeyFrame.Active = true
+    KeyFrame.Draggable = true
+    Instance.new("UICorner", KeyFrame).CornerRadius = UDim.new(0, 12)
+
+    local KeyHeader = Instance.new("Frame")
+    KeyHeader.Parent = KeyFrame
+    KeyHeader.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
+    KeyHeader.Size = UDim2.new(1, 0, 0, 35)
+    Instance.new("UICorner", KeyHeader).CornerRadius = UDim.new(0, 12)
+
+    local KeyTitle = Instance.new("TextLabel")
+    KeyTitle.Parent = KeyHeader
+    KeyTitle.BackgroundTransparency = 1
+    KeyTitle.Size = UDim2.new(1, 0, 1, 0)
+    KeyTitle.Font = Enum.Font.SourceSansBold
+    KeyTitle.Text = "สุริยันหยินหยาง HUB | ระบบตรวจสอบคีย์"
+    KeyTitle.TextColor3 = Color3.fromRGB(236, 253, 245)
+    KeyTitle.TextSize = 14
+
+    local KeyBox = Instance.new("TextBox")
+    KeyBox.Parent = KeyFrame
+    KeyBox.BackgroundColor3 = Color3.fromRGB(15, 28, 20)
+    KeyBox.BorderColor3 = Color3.fromRGB(16, 185, 129)
+    KeyBox.Position = UDim2.new(0.1, 0, 0.3, 0)
+    KeyBox.Size = UDim2.new(0.8, 0, 0, 45)
+    KeyBox.Font = Enum.Font.SourceSans
+    KeyBox.PlaceholderText = "กรอกคีย์ (YIN_YING) ที่นี่"
+    KeyBox.Text = ""
+    KeyBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+    KeyBox.TextSize = 14
+    Instance.new("UICorner", KeyBox).CornerRadius = UDim.new(0, 8)
+
+    local SubmitBtn = Instance.new("TextButton")
+    SubmitBtn.Parent = KeyFrame
+    SubmitBtn.BackgroundColor3 = Color3.fromRGB(16, 185, 129)
+    SubmitBtn.Position = UDim2.new(0.1, 0, 0.62, 0)
+    SubmitBtn.Size = UDim2.new(0.8, 0, 0, 45)
+    SubmitBtn.Font = Enum.Font.SourceSansBold
+    SubmitBtn.Text = "ยืนยันและเข้าสู่ระบบ"
+    SubmitBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    SubmitBtn.TextSize = 16
+    Instance.new("UICorner", SubmitBtn).CornerRadius = UDim.new(0, 8)
+
+    SubmitBtn.MouseButton1Click:Connect(function()
+        local inputKey = string.gsub(KeyBox.Text, "%s+", "")
+        if inputKey == PERMANENT_KEY then
+            -- บันทึกคีย์ลงไฟล์ในเครื่องถาวร
+            pcall(function()
+                if writefile then
+                    writefile(KEY_FILE_NAME, PERMANENT_KEY)
+                end
+            end)
+            
+            SubmitBtn.Text = "คีย์ถูกต้อง! บันทึกคีย์ถาวรแล้ว..."
+            SubmitBtn.BackgroundColor3 = Color3.fromRGB(4, 120, 87)
+            task.wait(0.8)
+            KeyFrame:Destroy()
+            OpenMainHub()
+        else
+            SubmitBtn.Text = "คีย์ไม่ถูกต้อง! ลองใหม่อีกครั้ง"
+            SubmitBtn.BackgroundColor3 = Color3.fromRGB(220, 38, 38)
+            task.wait(1.2)
+            SubmitBtn.Text = "ยืนยันและเข้าสู่ระบบ"
+            SubmitBtn.BackgroundColor3 = Color3.fromRGB(16, 185, 129)
+        end
+    end)
+end
+
+-- =======================================================
+-- ตรวจสอบคีย์ที่เคยบันทึกไว้ (Auto-Login)
+-- =======================================================
+local isKeySaved = false
+pcall(function()
+    if readfile and isfile and isfile(KEY_FILE_NAME) then
+        local savedKey = readfile(KEY_FILE_NAME)
+        if savedKey == PERMANENT_KEY then
+            isKeySaved = true
+        end
     end
 end)
+
+if isKeySaved then
+    -- ถ้าเคยใส่คีย์ถูกต้องแล้ว เปิด HUB ให้อัตโนมัติทันที
+    OpenMainHub()
+else
+    -- ถ้ายังไม่เคยบันทึก ให้แสดงหน้าต่างกรอกคีย์
+    CreateKeyUI()
+end
