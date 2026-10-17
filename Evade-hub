@@ -1,0 +1,374 @@
+-- 1. โหลด WindUI Version 1.6.66
+local _version = "1.6.66"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. _version .. "/main.lua"))()
+
+-- URL รูปภาพหลักของคุณ
+local MainImageURL = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg"
+
+-- 2. แจ้งเตือนเมื่อโหลดสคริปต์สำเร็จ
+WindUI:Notify({
+    Title = "Evade Hub",
+    Content = "โหลดสคริปต์สำเร็จแล้ว!",
+    Duration = 3
+})
+
+-- 3. สร้างหน้าต่างหลัก (Window)
+local Window = WindUI:CreateWindow({
+    Title = "Evade Hub",
+    Icon = MainImageURL,
+    Author = "RTS HUB",
+    Folder = "EvadeConfig",
+    Size = UDim2.fromOffset(580, 460),
+    Transparent = true,
+    Theme = "Dark",
+})
+
+-- =================================================================
+-- 🖼️ ใส่รูปภาพพื้นหลังให้หน้าต่างสคริปต์หลัก (Script Window Background)
+-- =================================================================
+task.spawn(function()
+    task.wait(0.5)
+    local CoreGui = game:GetService("CoreGui")
+    
+    for _, gui in pairs(CoreGui:GetChildren()) do
+        if gui:IsA("ScreenGui") and (gui.Name:find("WindUI") or gui:FindFirstChild("Main") or gui:FindFirstChild("Window")) then
+            local windowFrame = gui:FindFirstChild("Main") or gui:FindFirstChild("Window") or gui:FindFirstChildOfClass("Frame")
+            if windowFrame and not windowFrame:FindFirstChild("CustomImageBG") then
+                local bgImage = Instance.new("ImageLabel")
+                bgImage.Name = "CustomImageBG"
+                bgImage.Size = UDim2.new(1, 0, 1, 0)
+                bgImage.Position = UDim2.new(0, 0, 0, 0)
+                bgImage.Image = MainImageURL
+                bgImage.ScaleType = Enum.ScaleType.Crop
+                bgImage.BackgroundTransparency = 1
+                bgImage.ImageTransparency = 0.35
+                bgImage.ZIndex = 0
+                bgImage.Parent = windowFrame
+                
+                local corner = Instance.new("UICorner")
+                corner.CornerRadius = UDim.new(0, 10)
+                corner.Parent = bgImage
+            end
+        end
+    end
+end)
+
+-- =================================================================
+-- 📊 ระบบ FPS & Ping Tags
+-- =================================================================
+local FPSTag = Window:Tag({
+    Title = "FPS: 0",
+    Color = Color3.fromRGB(255, 255, 255),
+})
+
+local PingTag = Window:Tag({
+    Title = "Ping: 0ms",
+    Color = Color3.fromRGB(180, 180, 180),
+})
+
+local RunService = game:GetService("RunService")
+local lastUpdate = tick()
+local frameCount = 0
+
+RunService.RenderStepped:Connect(function()
+    frameCount = frameCount + 1
+    local now = tick()
+    
+    if now - lastUpdate >= 1 then
+        local fps = math.floor(frameCount / (now - lastUpdate))
+        FPSTag:SetTitle("FPS: " .. fps)
+        
+        if fps >= 30 then
+            FPSTag:SetColor(Color3.fromRGB(255, 255, 255))
+        else
+            FPSTag:SetColor(Color3.fromRGB(120, 120, 120))
+        end
+        
+        frameCount = 0
+        lastUpdate = now
+    end
+end)
+
+task.spawn(function()
+    while true do
+        local success, ping = pcall(function()
+            local Stats = game:GetService("Stats")
+            local pingValue = Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+            return math.floor(pingValue)
+        end)
+        
+        if success and ping then
+            PingTag:SetTitle("Ping: " .. ping .. "ms")
+            
+            if ping <= 100 then
+                PingTag:SetColor(Color3.fromRGB(240, 240, 240))
+            else
+                PingTag:SetColor(Color3.fromRGB(150, 150, 150))
+            end
+        end
+        
+        task.wait(2)
+    end
+end)
+
+-- =================================================================
+-- 📑 แท็บเมนูทั้งหมด
+-- =================================================================
+local MainTab = Window:Tab({ Title = "หน้าหลัก", Icon = "home" })
+local FarmTab = Window:Tab({ Title = "ฟาร์ม", Icon = "wheat" })
+local PlayerTab = Window:Tab({ Title = "ผู้เล่น", Icon = "user" })
+local VisualTab = Window:Tab({ Title = "ไอคอน", Icon = "eye" })
+local SettingsTab = Window:Tab({ Title = "การตั้งค่า", Icon = "settings" })
+local AboutTab = Window:Tab({ Title = "เกี่ยวกับ", Icon = "info" })
+
+MainTab:Tag({ Title = "NEW", Color = Color3.fromRGB(255, 255, 255) })
+
+-- 📌 1. หน้าหลัก (Main)
+MainTab:Image({
+    Image = MainImageURL,
+    AspectRatio = "16:9",
+    Radius = 12,
+})
+
+-- ⏳ เพิ่ม ProgressBar ในหน้าหลัก
+local Progress = MainTab:ProgressBar({
+    Title = "สถานะการดาวน์โหลดข้อมูล",
+    Desc = "กำลังโหลดไฟล์สคริปต์...",
+    Value = {
+        Min = 0,
+        Max = 100,
+        Default = 100, -- แสดง 100% ว่าโหลดเสร็จสมบูรณ์
+    },
+})
+
+local MainSection = MainTab:Section({ Title = "ระบบการเคลื่อนย้าย & วาร์ป" })
+MainSection:Button({
+    Title = "ETP (Evade Teleport / Utility)",
+    Desc = "วาร์ปหรือระบบลัดในเกม",
+    Callback = function()
+        WindUI:Notify({ Title = "ETP Activated", Content = "ใช้งานระบบ Teleport", Duration = 2 })
+    end
+})
+
+-- 🌾 2. ฟาร์ม (Farm)
+local FarmSection = FarmTab:Section({ Title = "ระบบฟาร์มอัตโนมัติ" })
+FarmSection:Toggle({ Title = "ฟาร์ม Token", Callback = function(v) _G.AutoFarmToken = v end })
+FarmSection:Toggle({ Title = "ฟาร์มเงิน", Callback = function(v) _G.AutoFarmMoney = v end })
+FarmSection:Toggle({ Title = "เควสฟาร์ม", Callback = function(v) _G.AutoFarmQuest = v end })
+
+-- 👤 3. ผู้เล่น (Player)
+local PlayerSection = PlayerTab:Section({ Title = "ปรับแต่งตัวละคร" })
+PlayerSection:Toggle({ Title = "เปิดใช้งานระบบปรับแต่งผู้เล่น", Callback = function(v) _G.EnablePlayerCustoms = v end })
+
+PlayerSection:Slider({
+    Title = "ความเร็ว (WalkSpeed)",
+    Value = { Min = 16, Max = 300, Default = 16 },
+    Callback = function(v)
+        _G.CustomSpeed = v
+        if _G.EnablePlayerCustoms and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
+        end
+    end
+})
+
+PlayerSection:Slider({
+    Title = "กระโดดสูง (JumpPower)",
+    Value = { Min = 50, Max = 400, Default = 50 },
+    Callback = function(v)
+        _G.CustomJumpPower = v
+        if _G.EnablePlayerCustoms and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
+            game.Players.LocalPlayer.Character.Humanoid.UseJumpPower = true
+        end
+    end
+})
+
+PlayerSection:Slider({
+    Title = "แรงโน้มถ่วง (Gravity)",
+    Value = { Min = 0, Max = 196, Default = 196 },
+    Callback = function(v) workspace.Gravity = v end
+})
+
+PlayerSection:Toggle({ Title = "ออโต้กระโดด (Auto Jump)", Callback = function(v) _G.AutoJump = v end })
+
+-- 👁️ 4. ไอคอน (Visuals)
+local IconSection = VisualTab:Section({ Title = "ไอคอนหลัก Econ 1" })
+IconSection:Toggle({
+    Title = "แสดงไอคอนลอยบนหน้าจอ (Econ 1)",
+    Callback = function(v)
+        if CoreGui:FindFirstChild("EvadeToggleGui") then
+            CoreGui.EvadeToggleGui.Enabled = v
+        end
+    end
+})
+
+local ESPSection = VisualTab:Section({ Title = "ระบบการมองเห็น (ESP)" })
+ESPSection:Toggle({ Title = "มองเห็น Nextbot (Bot ESP)", Callback = function(v) ToggleBotESP(v) end })
+ESPSection:Toggle({ Title = "มองเห็นเพื่อนที่ล้ม (Downed ESP)", Callback = function(v) ToggleDownedESP(v) end })
+
+-- ⚙️ 5. การตั้งค่า (Settings)
+local SettingsSection = SettingsTab:Section({ Title = "ตั้งค่าทั่วไป" })
+SettingsSection:Button({
+    Title = "รีเซ็ตค่าเดิม (Reset Settings)",
+    Callback = function()
+        workspace.Gravity = 196
+        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
+            game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
+        end
+    end
+})
+
+SettingsSection:Button({
+    Title = "ปิดสคริปต์ (Destroy UI)",
+    Callback = function()
+        if CoreGui:FindFirstChild("EvadeToggleGui") then
+            CoreGui.EvadeToggleGui:Destroy()
+        end
+    end
+})
+
+-- ℹ️ 6. เกี่ยวกับ (About)
+AboutTab:Image({
+    Image = MainImageURL,
+    AspectRatio = "16:9",
+    Radius = 12,
+})
+
+local AboutSection = AboutTab:Section({ Title = "ข้อมูลสคริปต์" })
+AboutSection:Button({ Title = "ชื่อสคริปต์", Desc = "Evade RTS Hub", Callback = function() end })
+AboutSection:Button({ Title = "ผู้พัฒนา", Desc = "RTS HUB", Callback = function() end })
+
+-- =================================================================
+-- 🌀 ปุ่ม Floating Icon (Econ 1 - ไอคอนทรงวงกลม หมุนวน 360° + ลากได้)
+-- =================================================================
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local UserInputService = game:GetService("UserInputService")
+
+if CoreGui:FindFirstChild("EvadeToggleGui") then
+    CoreGui.EvadeToggleGui:Destroy()
+end
+
+local ToggleGui = Instance.new("ScreenGui")
+ToggleGui.Name = "EvadeToggleGui"
+ToggleGui.Parent = CoreGui
+
+local ToggleButton = Instance.new("ImageButton")
+ToggleButton.Name = "Econ1_Button"
+ToggleButton.Size = UDim2.fromOffset(55, 55)
+ToggleButton.Position = UDim2.new(0.1, 0, 0.2, 0)
+ToggleButton.Image = MainImageURL
+ToggleButton.BackgroundTransparency = 1
+ToggleButton.Parent = ToggleGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(1, 0)
+UICorner.Parent = ToggleButton
+
+-- หมุนไอคอนวงกลมวนซ้ำตลอดเวลา
+task.spawn(function()
+    while ToggleButton and ToggleButton.Parent do
+        ToggleButton.Rotation = 0
+        local tween = TweenService:Create(
+            ToggleButton,
+            TweenInfo.new(3, Enum.EasingStyle.Linear, Enum.EasingDirection.InOut),
+            { Rotation = 360 }
+        )
+        tween:Play()
+        tween.Completed:Wait()
+    end
+end)
+
+-- ระบบลากตำแหน่งไอคอน Econ 1
+local dragging = false
+local dragInput, dragStart, startPos
+local dragMoved = false
+
+local function update(input)
+    local delta = input.Position - dragStart
+    ToggleButton.Position = UDim2.new(
+        startPos.X.Scale, 
+        startPos.X.Offset + delta.X, 
+        startPos.Y.Scale, 
+        startPos.Y.Offset + delta.Y
+    )
+end
+
+ToggleButton.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = true
+        dragMoved = false
+        dragStart = input.Position
+        startPos = ToggleButton.Position
+
+        input.Changed:Connect(function()
+            if input.UserInputState == Enum.UserInputState.End then
+                dragging = false
+            end
+        end)
+    end
+end)
+
+ToggleButton.InputChanged:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
+        dragInput = input
+    end
+end)
+
+UserInputService.InputChanged:Connect(function(input)
+    if input == dragInput and dragging then
+        if (input.Position - dragStart).Magnitude > 5 then
+            dragMoved = true
+        end
+        update(input)
+    end
+end)
+
+-- กดสลับเปิด/ปิด หน้าต่าง UI
+local isOpen = true
+ToggleButton.MouseButton1Click:Connect(function()
+    if not dragMoved then
+        isOpen = not isOpen
+        Window:Toggle(isOpen)
+    end
+end)
+
+-- =================================================================
+-- 🛠️ ฟังก์ชันทำงานเบื้องหลัง
+-- =================================================================
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+task.spawn(function()
+    while task.wait(0.1) do
+        if _G.EnablePlayerCustoms and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+            if _G.CustomSpeed then
+                LocalPlayer.Character.Humanoid.WalkSpeed = _G.CustomSpeed
+            end
+            if _G.AutoJump and LocalPlayer.Character.Humanoid.FloorMaterial ~= Enum.Material.Air then
+                LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+            end
+        end
+    end
+end)
+
+function ToggleBotESP(state) _G.BotESP = state end
+function ToggleDownedESP(state) _G.DownedESP = state end
+
+task.spawn(function()
+    while task.wait(1) do
+        if _G.BotESP then
+            for _, obj in pairs(workspace:GetChildren()) do
+                if obj:FindFirstChild("Humanoid") and not Players:GetPlayerFromCharacter(obj) then
+                    if not obj:FindFirstChild("BotHighlight") then
+                        local hl = Instance.new("Highlight", obj)
+                        hl.Name = "BotHighlight"
+                        hl.FillColor = Color3.fromRGB(200, 200, 200)
+                    end
+                end
+            end
+        end
+    end
+end)
+
