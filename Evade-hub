@@ -7,18 +7,19 @@ local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/rel
 -- URL รูปภาพหลักของคุณ
 local MainImageURL = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg"
 
--- แจ้งเตือนเมื่อเปิดสคริปต์
+_G.ScriptLoaded = true
+
 WindUI:Notify({
-    Title = "Evade Hub",
-    Content = "กำลังเริ่มดาวน์โหลดระบบ... กรุณารอ 10 วินาที",
-    Duration = 5
+    Title = "Evade RTS Hub",
+    Content = "โหลดระบบฟาร์มและฟังก์ชันทั้งหมดเรียบร้อย!",
+    Duration = 3
 })
 
 -- =================================================================
 -- 2. สร้างหน้าต่างหลัก (Window)
 -- =================================================================
 local Window = WindUI:CreateWindow({
-    Title = "Evade Hub (Ultimate)",
+    Title = "Evade Hub (Farm Edition)",
     Icon = MainImageURL,
     Author = "RTS HUB",
     Folder = "RTSHub_EvadeConfig",
@@ -30,7 +31,7 @@ local Window = WindUI:CreateWindow({
 -- =================================================================
 -- 3. แท็บเมนูทั้งหมด (Tabs)
 -- =================================================================
-local MainTab     = Window:Tab({ Title = "หน้าหลัก", Icon = "home" })
+local MainTab     = Window:Tab({ Title = "หน้าหลัก (ETP)", Icon = "home" })
 local FarmTab     = Window:Tab({ Title = "ฟาร์ม & เควส", Icon = "wheat" })
 local PlayerTab   = Window:Tab({ Title = "ผู้เล่น & บิน", Icon = "user" })
 local VisualTab   = Window:Tab({ Title = "มองทะลุ ESP", Icon = "eye" })
@@ -38,249 +39,123 @@ local SettingsTab = Window:Tab({ Title = "การตั้งค่า", Icon 
 local AboutTab    = Window:Tab({ Title = "เกี่ยวกับ", Icon = "info" })
 
 -- =================================================================
--- 📌 แท็บ 1: หน้าหลัก (Main) + ระบบโหลด 10 วินาที
+-- 📌 แท็บ 1: หน้าหลัก (ระบบ ETP)
 -- =================================================================
-MainTab:Image({
-    Image = MainImageURL,
-    AspectRatio = "16:9",
-    Radius = 12,
+MainTab:Image({ Image = MainImageURL, AspectRatio = "16:9", Radius = 12 })
+
+local ETPSection = MainTab:Section({ Title = "ระบบ ETP (ESP & Tracers)" })
+ETPSection:Toggle({
+    Title = "เปิดใช้งานระบบ ETP",
+    Callback = function(v) _G.EnableETP = v end
+})
+ETPSection:Toggle({
+    Title = "แสดงเส้น Tracers (ลากจากล่างกลางจอ)",
+    Callback = function(v) _G.ETP_Tracers = v end
 })
 
-local DownloadProgress = MainTab:ProgressBar({
-    Title = "สถานะการดาวน์โหลดสิทธิบัตรและระบบ",
-    Desc = "กำลังดาวน์โหลดไฟล์ (0%) - กรุณารอสักครู่...",
-    Value = { Min = 0, Max = 100, Default = 0 },
-})
+-- =================================================================
+-- 🌾 แท็บ 2: ฟาร์ม & เควส (เพิ่มระบบเลือกโหมด วาร์ป / บิน)
+-- =================================================================
+local FarmModeSection = FarmTab:Section({ Title = "เลือกรูปแบบการฟาร์ม (Farm Method)" })
 
-_G.ScriptLoaded = false
+_G.FarmMode = "วาร์ปไปเก็บ (Teleport)" -- ค่าเริ่มต้น
 
-task.spawn(function()
-    local totalSeconds = 10 -- 3 วินาที
-    local interval = totalSeconds / 100
-    
-    for i = 1, 100 do
-        task.wait(interval)
-        DownloadProgress:SetValue(i)
-        DownloadProgress:SetDesc("กำลังดาวน์โหลดไฟล์ (" .. i .. "%) ...")
-    end
-    
-    _G.ScriptLoaded = true
-    DownloadProgress:SetDesc("ดาวน์โหลดสำเร็จ! ระบบพร้อมใช้งานทั้งหมดแล้ว")
-    WindUI:Notify({
-        Title = "Evade Hub Ready",
-        Content = "โหลดเสร็จสิ้น 100% ระบบทั้งหมดเริ่มทำงานแล้ว!",
-        Duration = 4
-    })
-end)
-
-local MainSection = MainTab:Section({ Title = "ระบบวาร์ป & มินิแมพ" })
-
-MainSection:Button({
-    Title = "ETP (Evade Teleport / Utility)",
-    Desc = "วาร์ปไปจุดปลอดภัยหรือตำแหน่งลัด",
-    Callback = function()
-        if not _G.ScriptLoaded then
-            WindUI:Notify({ Title = "Warning", Content = "กรุณารอโหลดระบบให้ครบ 100% ก่อน!", Duration = 2 })
-            return
-        end
-        WindUI:Notify({ Title = "ETP Activated", Content = "เปิดใช้งานระบบ Teleport", Duration = 2 })
+FarmModeSection:Dropdown({
+    Title = "รูปแบบการเคลื่อนที่ไปฟาร์ม",
+    Desc = "เลือกประเภทการเดินทางไปเก็บไอเทม/ตั๋ว/เงิน",
+    Values = { "วาร์ปไปเก็บ (Teleport)", "บินไปเก็บ (Fly)" },
+    Default = "วาร์ปไปเก็บ (Teleport)",
+    Callback = function(selected)
+        _G.FarmMode = selected
+        WindUI:Notify({
+            Title = "Farm Mode",
+            Content = "เปลี่ยนโหมดฟาร์มเป็น: " .. selected,
+            Duration = 2
+        })
     end
 })
 
--- =================================================================
--- 🌾 แท็บ 2: ฟาร์ม & เควส (Farm & Auto Features)
--- =================================================================
 local FarmSection = FarmTab:Section({ Title = "ระบบฟาร์มอัตโนมัติ" })
-
 FarmSection:Toggle({ Title = "ฟาร์ม Token อัตโนมัติ", Callback = function(v) _G.AutoFarmToken = v end })
 FarmSection:Toggle({ Title = "ฟาร์มเงิน อัตโนมัติ", Callback = function(v) _G.AutoFarmMoney = v end })
 FarmSection:Toggle({ Title = "ทำเควส อัตโนมัติ", Callback = function(v) _G.AutoFarmQuest = v end })
 
-local HelperSection = FarmTab:Section({ Title = "ระบบช่วยเหลือในเกม" })
-
-HelperSection:Toggle({
-    Title = "ช่วยเพื่อนล้มอัตโนมัติ (Auto Revive)",
-    Desc = "วิ่งไปช่วยชุบชีวิตเพื่อนทันทีเมื่อล้ม",
-    Callback = function(v) _G.AutoRevive = v end
-})
-
-HelperSection:Toggle({
-    Title = "เกิดใหม่อัตโนมัติ (Auto Respawn)",
-    Desc = "กดเกิดใหม่ทันทีเมื่อโดนบอทฆ่า",
-    Callback = function(v) _G.AutoRespawn = v end
-})
-
-HelperSection:Toggle({
-    Title = "กินโค้กอัตโนมัติ (Auto Drink Cola)",
-    Desc = "ใช้ไอเทมบัฟความเร็วทันทีเมื่อมี",
-    Callback = function(v) _G.AutoCola = v end
-})
+local HelperSection = FarmTab:Section({ Title = "ระบบช่วยเหลือ" })
+HelperSection:Toggle({ Title = "ช่วยเพื่อนล้มอัตโนมัติ (Auto Revive)", Callback = function(v) _G.AutoRevive = v end })
+HelperSection:Toggle({ Title = "เกิดใหม่อัตโนมัติ (Auto Respawn)", Callback = function(v) _G.AutoRespawn = v end })
 
 -- =================================================================
--- 👤 แท็บ 3: ผู้เล่น (Player & Physics)
+-- 👤 แท็บ 3: ผู้เล่น (Sliders สไลเดอร์)
 -- =================================================================
 local PlayerSection = PlayerTab:Section({ Title = "ปรับแต่งตัวละคร" })
-
-PlayerSection:Toggle({ Title = "เปิดใช้งานระบบปรับแต่งผู้เล่น", Callback = function(v) _G.EnablePlayerCustoms = v end })
+PlayerSection:Toggle({ Title = "เปิดใช้งานการปรับแต่งผู้เล่น", Callback = function(v) _G.EnablePlayerCustoms = v end })
 
 PlayerSection:Slider({
-    Title = "ความเร็ว (WalkSpeed)",
-    Min = 16, Max = 300, Default = 16,
+    Title = "ความเร็ว (WalkSpeed)", Min = 16, Max = 300, Default = 16,
     Callback = function(v)
         _G.CustomSpeed = v
-        if _G.ScriptLoaded and _G.EnablePlayerCustoms and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+        if _G.EnablePlayerCustoms and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
             game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = v
         end
     end
 })
 
 PlayerSection:Slider({
-    Title = "กระโดดสูง (JumpPower)",
-    Min = 50, Max = 400, Default = 50,
+    Title = "กระโดดสูง (JumpPower)", Min = 50, Max = 400, Default = 50,
     Callback = function(v)
         _G.CustomJumpPower = v
-        if _G.ScriptLoaded and _G.EnablePlayerCustoms and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
+        if _G.EnablePlayerCustoms and game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
             game.Players.LocalPlayer.Character.Humanoid.JumpPower = v
             game.Players.LocalPlayer.Character.Humanoid.UseJumpPower = true
         end
     end
 })
 
-PlayerSection:Slider({
-    Title = "แรงโน้มถ่วง (Gravity)",
-    Min = 0, Max = 196, Default = 196,
-    Callback = function(v) if _G.ScriptLoaded then workspace.Gravity = v end end
-})
+PlayerSection:Slider({ Title = "แรงโน้มถ่วง (Gravity)", Min = 0, Max = 196, Default = 196, Callback = function(v) workspace.Gravity = v end })
+PlayerSection:Slider({ Title = "ระยะมุมมองสายตา (FOV)", Min = 70, Max = 120, Default = 70, Callback = function(v) workspace.CurrentCamera.FieldOfView = v end })
 
-PlayerSection:Slider({
-    Title = "ระยะมุมมอง (FOV - Field of View)",
-    Min = 70, Max = 120, Default = 70,
-    Callback = function(v)
-        workspace.CurrentCamera.FieldOfView = v
-    end
-})
+_G.AutoJumpToggle = PlayerSection:Toggle({ Title = "ออโต้กระโดด (Auto Jump)", Callback = function(v) _G.AutoJump = v end })
 
-_G.AutoJumpToggle = PlayerSection:Toggle({
-    Title = "ออโต้กระโดด (Auto Jump)",
-    Callback = function(v) _G.AutoJump = v end
-})
-
-local MotionSection = PlayerTab:Section({ Title = "ระบบการบิน & เคลื่อนที่พิเศษ" })
-
-MotionSection:Toggle({
-    Title = "กระโดดกลางอากาศได้เรื่อยๆ (Inf Jump)",
-    Callback = function(v) _G.InfJump = v end
-})
-
-MotionSection:Toggle({
-    Title = "เดินทะลุกำแพง (Noclip)",
-    Callback = function(v) _G.Noclip = v end
-})
+local MotionSection = PlayerTab:Section({ Title = "ระบบการเคลื่อนที่พิเศษ" })
+MotionSection:Toggle({ Title = "กระโดดกลางอากาศไม่จำกัด (Inf Jump)", Callback = function(v) _G.InfJump = v end })
+MotionSection:Toggle({ Title = "เดินทะลุกำแพง (Noclip)", Callback = function(v) _G.Noclip = v end })
 
 -- =================================================================
--- 👁️ แท็บ 4: ไอคอน & การมองเห็น (Visuals & ESP)
+-- 👁️ แท็บ 4: มองทะลุ ESP
 -- =================================================================
-local IconSection = VisualTab:Section({ Title = "ควบคุมปุ่มลอย Econ 1" })
-
-IconSection:Toggle({
-    Title = "แสดงปุ่มเปิด/ปิดบนหน้าจอ",
-    Value = true,
-    Callback = function(v)
-        local CoreGui = game:GetService("CoreGui")
-        if CoreGui:FindFirstChild("EvadeToggleGui") then
-            CoreGui.EvadeToggleGui.Enabled = v
-        end
-    end
-})
-
-local ESPSection = VisualTab:Section({ Title = "ระบบการมองเห็นทะลุกำแพง (ESP)" })
-
-ESPSection:Toggle({ Title = "มองเห็น Nextbot (Bot ESP)", Callback = function(v) _G.BotESP = v end })
-ESPSection:Toggle({ Title = "มองเห็นเพื่อนในทีม (Player ESP)", Callback = function(v) _G.PlayerESP = v end })
-ESPSection:Toggle({ Title = "มองเห็นเพื่อนล้ม (Downed ESP)", Callback = function(v) _G.DownedESP = v end })
-ESPSection:Toggle({ Title = "มองเห็นตั๋ว/ไอเทม (Item ESP)", Callback = function(v) _G.ItemESP = v end })
-
-local WorldSection = VisualTab:Section({ Title = "ระบบปรับแต่งแมพ" })
-
-WorldSection:Toggle({
-    Title = "สว่างชัดเจนไม่มีความมืด (Fullbright)",
-    Callback = function(v)
-        _G.Fullbright = v
-        if v then
-            game:GetService("Lighting").Brightness = 2
-            game:GetService("Lighting").ClockTime = 14
-            game:GetService("Lighting").FogEnd = 100000
-        else
-            game:GetService("Lighting").Brightness = 1
-        end
-    end
-})
+local VisualSection = VisualTab:Section({ Title = "ระบบมองทะลุ" })
+VisualSection:Toggle({ Title = "มองเห็น Nextbot (Bot ESP)", Callback = function(v) _G.BotESP = v end })
+VisualSection:Toggle({ Title = "มองเห็นเพื่อน (Player ESP)", Callback = function(v) _G.PlayerESP = v end })
 
 -- =================================================================
--- ⚙️ แท็บ 5: การตั้งค่า (Settings)
+-- ⚙️ แท็บ 5: การตั้งค่า
 -- =================================================================
-local SettingsSection = SettingsTab:Section({ Title = "ระบบบันทึกและการตั้งค่า" })
-
-SettingsSection:Keybind({
-    Title = "ปุ่มลัดเปิด/ปิดหน้าต่าง (Toggle UI)",
-    Value = "V",
-    Callback = function(key) Window:Toggle() end
-})
-
+local SettingsSection = SettingsTab:Section({ Title = "ระบบตั้งค่า" })
+SettingsSection:Keybind({ Title = "ปุ่มลัดเปิด/ปิดหน้าต่าง", Value = "V", Callback = function(key) Window:Toggle() end })
+SettingsSection:Button({ Title = "บันทึกการตั้งค่า", Callback = function() Window:SaveConfig() WindUI:Notify({Title="Settings", Content="บันทึกสำเร็จ", Duration=2}) end })
+SettingsSection:Button({ Title = "โหลดการตั้งค่า", Callback = function() Window:LoadConfig() WindUI:Notify({Title="Settings", Content="โหลดสำเร็จ", Duration=2}) end })
 SettingsSection:Button({
-    Title = "บันทึกการตั้งค่า (Save Config)",
-    Callback = function()
-        Window:SaveConfig()
-        WindUI:Notify({ Title = "Settings", Content = "บันทึกการตั้งค่าเรียบร้อย!", Duration = 2 })
-    end
-})
-
-SettingsSection:Button({
-    Title = "โหลดการตั้งค่า (Load Config)",
-    Callback = function()
-        Window:LoadConfig()
-        WindUI:Notify({ Title = "Settings", Content = "โหลดการตั้งค่าสำเร็จ!", Duration = 2 })
-    end
-})
-
-SettingsSection:Button({
-    Title = "รีเซ็ตค่าเดิม (Reset Settings)",
-    Callback = function()
-        workspace.Gravity = 196
-        workspace.CurrentCamera.FieldOfView = 70
-        if game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("Humanoid") then
-            game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = 16
-            game.Players.LocalPlayer.Character.Humanoid.JumpPower = 50
-        end
-        WindUI:Notify({ Title = "Reset", Content = "คืนค่าเริ่มต้นเรียบร้อย", Duration = 2 })
-    end
-})
-
-SettingsSection:Button({
-    Title = "ปิดสคริปต์ (Destroy UI)",
+    Title = "ปิดสคริปต์ทั้งหมด",
     Callback = function()
         local CoreGui = game:GetService("CoreGui")
         if CoreGui:FindFirstChild("EvadeToggleGui") then CoreGui.EvadeToggleGui:Destroy() end
         if CoreGui:FindFirstChild("EvadePopupWindow") then CoreGui.EvadePopupWindow:Destroy() end
+        if CoreGui:FindFirstChild("ETP_RenderGui") then CoreGui.ETP_RenderGui:Destroy() end
         Window:Destroy()
     end
 })
 
 -- =================================================================
--- ℹ️ แท็บ 6: เกี่ยวกับ (About)
+-- ℹ️ แท็บ 6: เกี่ยวกับ
 -- =================================================================
 AboutTab:Image({ Image = MainImageURL, AspectRatio = "16:9", Radius = 12 })
-
-local AboutSection = AboutTab:Section({ Title = "ข้อมูลสคริปต์" })
-AboutSection:Button({ Title = "ชื่อสคริปต์", Desc = "Evade RTS Hub (Ultimate)", Callback = function() end })
-AboutSection:Button({ Title = "ผู้พัฒนา", Desc = "RTS HUB", Callback = function() end })
-AboutSection:Button({ Title = "เวอร์ชัน", Desc = "v2.0 Full Edition", Callback = function() end })
+local AboutSection = AboutTab:Section({ Title = "ข้อมูล" })
+AboutSection:Button({ Title = "ชื่อสคริปต์", Desc = "Evade RTS Hub", Callback = function() end })
 
 -- =================================================================
 -- 🖼️ หน้าต่างป๊อปอัพย่อ (Popup Window สำหรับ Auto Jump)
 -- =================================================================
 local CoreGui = game:GetService("CoreGui")
-
 if CoreGui:FindFirstChild("EvadePopupWindow") then CoreGui.EvadePopupWindow:Destroy() end
 
 local PopupGui = Instance.new("ScreenGui")
@@ -289,7 +164,6 @@ PopupGui.Enabled = false
 PopupGui.Parent = CoreGui
 
 local PopupFrame = Instance.new("Frame")
-PopupFrame.Name = "MainFrame"
 PopupFrame.Size = UDim2.fromOffset(220, 130)
 PopupFrame.Position = UDim2.new(0.5, -110, 0.4, -65)
 PopupFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
@@ -298,14 +172,7 @@ PopupFrame.Active = true
 PopupFrame.Draggable = true
 PopupFrame.Parent = PopupGui
 
-local PopupCorner = Instance.new("UICorner")
-PopupCorner.CornerRadius = UDim.new(0, 10)
-PopupCorner.Parent = PopupFrame
-
-local PopupStroke = Instance.new("UIStroke")
-PopupStroke.Color = Color3.fromRGB(255, 255, 255)
-PopupStroke.Thickness = 1.5
-PopupStroke.Parent = PopupFrame
+Instance.new("UICorner", PopupFrame).CornerRadius = UDim.new(0, 10)
 
 local PopupTitle = Instance.new("TextLabel")
 PopupTitle.Size = UDim2.new(1, -30, 0, 30)
@@ -314,7 +181,6 @@ PopupTitle.Text = "Auto Jump Options"
 PopupTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
 PopupTitle.TextSize = 14
 PopupTitle.Font = Enum.Font.SourceSansBold
-PopupTitle.TextXAlignment = Enum.TextXAlignment.Left
 PopupTitle.BackgroundTransparency = 1
 PopupTitle.Parent = PopupFrame
 
@@ -325,13 +191,8 @@ CloseBtn.Text = "X"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(150, 0, 0)
 CloseBtn.TextSize = 12
-CloseBtn.Font = Enum.Font.SourceSansBold
 CloseBtn.Parent = PopupFrame
-
-local CloseCorner = Instance.new("UICorner")
-CloseCorner.CornerRadius = UDim.new(0, 5)
-CloseCorner.Parent = CloseBtn
-
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 5)
 CloseBtn.MouseButton1Click:Connect(function() PopupGui.Enabled = false end)
 
 local EnableBtn = Instance.new("TextButton")
@@ -340,18 +201,11 @@ EnableBtn.Position = UDim2.new(0.05, 0, 0.35, 0)
 EnableBtn.Text = "เปิด Auto Jump (ON)"
 EnableBtn.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 EnableBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-EnableBtn.TextSize = 13
-EnableBtn.Font = Enum.Font.SourceSans
 EnableBtn.Parent = PopupFrame
-
-local Btn1Corner = Instance.new("UICorner")
-Btn1Corner.CornerRadius = UDim.new(0, 6)
-Btn1Corner.Parent = EnableBtn
-
+Instance.new("UICorner", EnableBtn).CornerRadius = UDim.new(0, 6)
 EnableBtn.MouseButton1Click:Connect(function()
     _G.AutoJump = true
     if _G.AutoJumpToggle and _G.AutoJumpToggle.SetValue then _G.AutoJumpToggle:SetValue(true) end
-    WindUI:Notify({ Title = "Auto Jump", Content = "เปิด Auto Jump เรียบร้อย", Duration = 2 })
 end)
 
 local DisableBtn = Instance.new("TextButton")
@@ -360,18 +214,11 @@ DisableBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
 DisableBtn.Text = "ปิด Auto Jump (OFF)"
 DisableBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 DisableBtn.TextColor3 = Color3.fromRGB(180, 180, 180)
-DisableBtn.TextSize = 13
-DisableBtn.Font = Enum.Font.SourceSans
 DisableBtn.Parent = PopupFrame
-
-local Btn2Corner = Instance.new("UICorner")
-Btn2Corner.CornerRadius = UDim.new(0, 6)
-Btn2Corner.Parent = DisableBtn
-
+Instance.new("UICorner", DisableBtn).CornerRadius = UDim.new(0, 6)
 DisableBtn.MouseButton1Click:Connect(function()
     _G.AutoJump = false
     if _G.AutoJumpToggle and _G.AutoJumpToggle.SetValue then _G.AutoJumpToggle:SetValue(false) end
-    WindUI:Notify({ Title = "Auto Jump", Content = "ปิด Auto Jump เรียบร้อย", Duration = 2 })
 end)
 
 -- =================================================================
@@ -387,16 +234,12 @@ ToggleGui.Name = "EvadeToggleGui"
 ToggleGui.Parent = CoreGui
 
 local ToggleButton = Instance.new("ImageButton")
-ToggleButton.Name = "Econ1_Button"
 ToggleButton.Size = UDim2.fromOffset(55, 55)
 ToggleButton.Position = UDim2.new(0.1, 0, 0.2, 0)
 ToggleButton.Image = MainImageURL
 ToggleButton.BackgroundTransparency = 1
 ToggleButton.Parent = ToggleGui
-
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(1, 0)
-UICorner.Parent = ToggleButton
+Instance.new("UICorner", ToggleButton).CornerRadius = UDim.new(1, 0)
 
 task.spawn(function()
     while ToggleButton and ToggleButton.Parent do
@@ -408,13 +251,7 @@ task.spawn(function()
 end)
 
 local dragging = false
-local dragInput, dragStart, startPos
-local dragMoved = false
-
-local function updateInput(input)
-    local delta = input.Position - dragStart
-    ToggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
-end
+local dragStart, startPos, dragMoved = nil, nil, false
 
 ToggleButton.InputBegan:Connect(function(input)
     if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
@@ -422,20 +259,20 @@ ToggleButton.InputBegan:Connect(function(input)
         dragMoved = false
         dragStart = input.Position
         startPos = ToggleButton.Position
-        input.Changed:Connect(function() if input.UserInputState == Enum.UserInputState.End then dragging = false end end)
-    end
-end)
-
-ToggleButton.InputChanged:Connect(function(input)
-    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseMovement then
-        dragInput = input
     end
 end)
 
 UserInputService.InputChanged:Connect(function(input)
-    if input == dragInput and dragging then
-        if (input.Position - dragStart).Magnitude > 5 then dragMoved = true end
-        updateInput(input)
+    if dragging then
+        local delta = input.Position - dragStart
+        if delta.Magnitude > 5 then dragMoved = true end
+        ToggleButton.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+    end
+end)
+
+UserInputService.InputEnded:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        dragging = false
     end
 end)
 
@@ -444,76 +281,90 @@ ToggleButton.MouseButton1Click:Connect(function()
 end)
 
 -- =================================================================
--- 🛠️ ฟังก์ชันทำงานเบื้องหลัง (Background Logic & Physics)
+-- 🎯 ระบบ ETP Engine
 -- =================================================================
+local RunService = game:GetService("RunService")
 local Players = game:GetService("Players")
+local Camera = workspace.CurrentCamera
 local LocalPlayer = Players.LocalPlayer
 
--- ระบบ Infinite Jump
+if CoreGui:FindFirstChild("ETP_RenderGui") then CoreGui.ETP_RenderGui:Destroy() end
+local ETP_Gui = Instance.new("ScreenGui")
+ETP_Gui.Name = "ETP_RenderGui"
+ETP_Gui.Parent = CoreGui
+
+RunService.RenderStepped:Connect(function()
+    if not _G.EnableETP then
+        ETP_Gui:ClearAllChildren()
+        return
+    end
+
+    for _, obj in pairs(workspace:GetChildren()) do
+        local humanoidRootPart = obj:FindFirstChild("HumanoidRootPart") or obj:FindFirstChild("Torso")
+        if humanoidRootPart and obj ~= LocalPlayer.Character then
+            local pos, onScreen = Camera:WorldToViewportPoint(humanoidRootPart.Position)
+            if onScreen then
+                local dist = math.floor((humanoidRootPart.Position - Camera.CFrame.Position).Magnitude)
+                
+                local nameTag = ETP_Gui:FindFirstChild(obj.Name .. "_Tag") or Instance.new("TextLabel")
+                nameTag.Name = obj.Name .. "_Tag"
+                nameTag.Size = UDim2.fromOffset(150, 30)
+                nameTag.Position = UDim2.new(0, pos.X - 75, 0, pos.Y - 40)
+                nameTag.BackgroundTransparency = 1
+                nameTag.TextColor3 = Color3.fromRGB(255, 255, 255)
+                nameTag.TextSize = 12
+                nameTag.Font = Enum.Font.SourceSansBold
+                nameTag.Text = obj.Name .. " [" .. dist .. "m]"
+                nameTag.Parent = ETP_Gui
+
+                if _G.ETP_Tracers then
+                    local tracer = ETP_Gui:FindFirstChild(obj.Name .. "_Line") or Instance.new("Frame")
+                    tracer.Name = obj.Name .. "_Line"
+                    tracer.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+                    tracer.BorderSizePixel = 0
+                    tracer.Parent = ETP_Gui
+
+                    local screenCenterBottom = Vector2.new(Camera.ViewportSize.X / 2, Camera.ViewportSize.Y)
+                    local targetPos = Vector2.new(pos.X, pos.Y)
+                    local distance = (targetPos - screenCenterBottom).Magnitude
+                    tracer.Size = UDim2.fromOffset(2, distance)
+                    tracer.Position = UDim2.fromOffset(screenCenterBottom.X, screenCenterBottom.Y)
+                    tracer.Rotation = math.deg(math.atan2(targetPos.Y - screenCenterBottom.Y, targetPos.X - screenCenterBottom.X)) - 90
+                else
+                    local tracer = ETP_Gui:FindFirstChild(obj.Name .. "_Line")
+                    if tracer then tracer:Destroy() end
+                end
+            else
+                local nameTag = ETP_Gui:FindFirstChild(obj.Name .. "_Tag")
+                if nameTag then nameTag:Destroy() end
+                local tracer = ETP_Gui:FindFirstChild(obj.Name .. "_Line")
+                if tracer then tracer:Destroy() end
+            end
+        end
+    end
+end)
+
+-- =================================================================
+-- 🛠️ ฟังก์ชันฟาร์มเบื้องหลัง (ประมวลผลตาม Farm Mode ที่เลือก)
+-- =================================================================
 UserInputService.JumpRequest:Connect(function()
-    if _G.ScriptLoaded and _G.InfJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
+    if _G.InfJump and LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid") then
         LocalPlayer.Character:FindFirstChildOfClass("Humanoid"):ChangeState("Jumping")
     end
 end)
 
--- ลูปการทำงานเบื้องหลัง (Player Physics, Noclip, Speed, Auto Jump)
 task.spawn(function()
     while task.wait(0.05) do
-        if _G.ScriptLoaded and LocalPlayer.Character then
-            -- WalkSpeed & Auto Jump
+        if LocalPlayer.Character then
             if _G.EnablePlayerCustoms and LocalPlayer.Character:FindFirstChild("Humanoid") then
                 if _G.CustomSpeed then LocalPlayer.Character.Humanoid.WalkSpeed = _G.CustomSpeed end
                 if _G.AutoJump and LocalPlayer.Character.Humanoid.FloorMaterial ~= Enum.Material.Air then
                     LocalPlayer.Character.Humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
                 end
             end
-            -- Noclip
             if _G.Noclip then
                 for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
                     if part:IsA("BasePart") then part.CanCollide = false end
-                end
-            end
-        end
-    end
-end)
-
--- ลูประบบ ESP ทะลุกำแพง
-task.spawn(function()
-    while task.wait(1) do
-        if _G.ScriptLoaded then
-            -- Bot ESP
-            if _G.BotESP then
-                for _, obj in pairs(workspace:GetChildren()) do
-                    if obj:FindFirstChild("Humanoid") and not Players:GetPlayerFromCharacter(obj) then
-                        if not obj:FindFirstChild("BotHighlight") then
-                            local hl = Instance.new("Highlight", obj)
-                            hl.Name = "BotHighlight"
-                            hl.FillColor = Color3.fromRGB(255, 50, 50)
-                        end
-                    end
-                end
-            else
-                for _, obj in pairs(workspace:GetChildren()) do
-                    if obj:FindFirstChild("BotHighlight") then obj.BotHighlight:Destroy() end
-                end
-            end
-
-            -- Player ESP
-            if _G.PlayerESP then
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player ~= LocalPlayer and player.Character then
-                        if not player.Character:FindFirstChild("PlayerHighlight") then
-                            local hl = Instance.new("Highlight", player.Character)
-                            hl.Name = "PlayerHighlight"
-                            hl.FillColor = Color3.fromRGB(50, 255, 50)
-                        end
-                    end
-                end
-            else
-                for _, player in pairs(Players:GetPlayers()) do
-                    if player.Character and player.Character:FindFirstChild("PlayerHighlight") then
-                        player.Character.PlayerHighlight:Destroy()
-                    end
                 end
             end
         end
