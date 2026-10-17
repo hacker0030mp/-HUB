@@ -10,7 +10,7 @@ local MainImageURL = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45
 -- แจ้งเตือนเมื่อเปิดสคริปต์
 WindUI:Notify({
     Title = "Evade Hub",
-    Content = "กำลังเริ่มดาวน์โหลดระบบ... กรุณารอ 3 นาที",
+    Content = "กำลังเริ่มดาวน์โหลดระบบ... กรุณารอ 10 วินาที",
     Duration = 5
 })
 
@@ -38,7 +38,7 @@ local SettingsTab = Window:Tab({ Title = "การตั้งค่า", Icon 
 local AboutTab    = Window:Tab({ Title = "เกี่ยวกับ", Icon = "info" })
 
 -- =================================================================
--- 📌 แท็บ 1: หน้าหลัก (Main) + ระบบโหลด 3 นาที
+-- 📌 แท็บ 1: หน้าหลัก (Main) + ระบบโหลด 10 วินาที
 -- =================================================================
 MainTab:Image({
     Image = MainImageURL,
@@ -55,7 +55,7 @@ local DownloadProgress = MainTab:ProgressBar({
 _G.ScriptLoaded = false
 
 task.spawn(function()
-    local totalSeconds = 180 -- 3 นาที
+    local totalSeconds = 10 -- 3 วินาที
     local interval = totalSeconds / 100
     
     for i = 1, 100 do
