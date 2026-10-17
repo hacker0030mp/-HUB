@@ -1,0 +1,556 @@
+-- =========================================================================
+-- ☯️ สุริยันหยินหยาง & RTS HUB : MEGA ULTIMATE EDITION (2026) ☯️
+-- สคริปต์ฉบับสมบูรณ์ | ภาษาไทย 100% | รองรับมือถือ & คอมพิวเตอร์
+-- เวอร์ชัน: 2.5.0-MEGA | ผู้พัฒนา: โมโก้ ไมเกิร์น & ใจ
+-- =========================================================================
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local CollectionService = game:GetService("CollectionService")
+local Workspace = game:GetService("Workspace")
+local CoreGui = game:GetService("CoreGui")
+local TweenService = game:GetService("TweenService")
+local HttpService = game:GetService("HttpService")
+
+local LocalPlayer = Players.LocalPlayer
+local Camera = Workspace.CurrentCamera
+
+-- =========================================================================
+-- 🎨 ธีมสีและการตั้งค่าระบบ
+-- =========================================================================
+local THEME = {
+    Accent = Color3.fromRGB(16, 185, 129),
+    AccentLight = Color3.fromRGB(52, 211, 153),
+    Background = Color3.fromRGB(5, 14, 9),
+    Panel = Color3.fromRGB(15, 28, 20),
+    Header = Color3.fromRGB(4, 120, 87),
+    Text = Color3.fromRGB(236, 253, 245),
+    Muted = Color3.fromRGB(110, 231, 183),
+    Red = Color3.fromRGB(220, 38, 38),
+    Green = Color3.fromRGB(16, 185, 129),
+    Yellow = Color3.fromRGB(245, 158, 11),
+}
+
+local SETTINGS = {
+    WalkSpeed = 16,
+    JumpPower = 50,
+    FOV = 70,
+    Version = "2.5.0-MEGA",
+    Author = "โมโก้ ไมเกิร์น & ใจ"
+}
+
+local HubState = {
+    SpeedEnabled = false,
+    JumpEnabled = false,
+    ESPEnabled = false,
+    InfiniteJump = false,
+    Noclip = false,
+    Fullbright = false,
+    Platform = nil,
+    ESPObjects = {},
+    Connections = {},
+    CustomWalkSpeed = 16,
+    CustomJumpPower = 50,
+}
+
+-- =========================================================================
+-- 🔧 ฟังก์ชันระบบภายใน
+-- =========================================================================
+local function RegisterConnection(connection)
+    table.insert(HubState.Connections, connection)
+    return connection
+end
+
+local function GetCharacterAndHumanoid()
+    local char = LocalPlayer.Character
+    if not char then return nil, nil end
+    return char, char:FindFirstChildOfClass("Humanoid")
+end
+
+-- เคลียร์ UI เก่า
+pcall(function()
+    if CoreGui:FindFirstChild("YinYangMegaHub") then
+        CoreGui.YinYangMegaHub:Destroy()
+    end
+end)
+
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "YinYangMegaHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+ScreenGui.Parent = CoreGui
+
+-- =========================================================================
+-- 🔔 ระบบแจ้งเตือน
+-- =========================================================================
+local NotificationContainer = Instance.new("Frame")
+NotificationContainer.Name = "Notifications"
+NotificationContainer.Size = UDim2.new(0, 300, 1, 0)
+NotificationContainer.Position = UDim2.new(1, -310, 0, 10)
+NotificationContainer.BackgroundTransparency = 1
+NotificationContainer.Parent = ScreenGui
+
+local NotifLayout = Instance.new("UIListLayout")
+NotifLayout.SortOrder = Enum.SortOrder.LayoutOrder
+NotifLayout.VerticalAlignment = Enum.VerticalAlignment.Bottom
+NotifLayout.Padding = UDim.new(0, 8)
+NotifLayout.Parent = NotificationContainer
+
+local function ShowNotification(titleText, messageText, duration)
+    task.spawn(function()
+        local card = Instance.new("Frame")
+        card.Size = UDim2.new(1, 0, 0, 65)
+        card.BackgroundColor3 = THEME.Background
+        card.BorderColor3 = THEME.Accent
+        card.BorderSizePixel = 1
+        card.BackgroundTransparency = 0.1
+        card.Parent = NotificationContainer
+        Instance.new("UICorner", card).CornerRadius = UDim.new(0, 8)
+
+        local title = Instance.new("TextLabel")
+        title.Size = UDim2.new(1, -15, 0, 22)
+        title.Position = UDim2.fromOffset(10, 5)
+        title.BackgroundTransparency = 1
+        title.Font = Enum.Font.GothamBold
+        title.Text = titleText
+        title.TextColor3 = THEME.AccentLight
+        title.TextSize = 13
+        title.TextXAlignment = Enum.TextXAlignment.Left
+        title.Parent = card
+
+        local msg = Instance.new("TextLabel")
+        msg.Size = UDim2.new(1, -15, 0, 30)
+        msg.Position = UDim2.fromOffset(10, 27)
+        msg.BackgroundTransparency = 1
+        msg.Font = Enum.Font.Gotham
+        msg.Text = messageText
+        msg.TextColor3 = THEME.Text
+        msg.TextSize = 11
+        msg.TextWrapped = true
+        msg.TextXAlignment = Enum.TextXAlignment.Left
+        msg.Parent = card
+
+        task.wait(duration or 3)
+        TweenService:Create(card, TweenInfo.new(0.4), {BackgroundTransparency = 1}):Play()
+        task.wait(0.4)
+        card:Destroy()
+    end)
+end
+
+-- =========================================================================
+-- ☯️ ไอคอนหยินหยางลอยหมุน
+-- =========================================================================
+local FloatingButton = Instance.new("ImageButton")
+FloatingButton.Name = "FloatingYinYang"
+FloatingButton.Parent = ScreenGui
+FloatingButton.BackgroundColor3 = THEME.Background
+FloatingButton.BorderColor3 = THEME.Accent
+FloatingButton.BorderSizePixel = 2
+FloatingButton.Position = UDim2.new(0.05, 0, 0.2, 0)
+FloatingButton.Size = UDim2.new(0, 65, 0, 65)
+FloatingButton.Image = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg"
+FloatingButton.ScaleType = Enum.ScaleType.Fit
+FloatingButton.Active = true
+FloatingButton.Draggable = true
+Instance.new("UICorner", FloatingButton).CornerRadius = UDim.new(1, 0)
+
+-- ระบบหมุนไอคอน
+task.spawn(function()
+    local rot = 0
+    while FloatingButton and FloatingButton.Parent do
+        rot = (rot + 3) % 360
+        FloatingButton.Rotation = rot
+        task.wait(0.04)
+    end
+end)
+
+-- =========================================================================
+-- 🪟 โครงสร้างหน้าต่างเมนูหลัก
+-- =========================================================================
+local MainWindow = Instance.new("Frame")
+MainWindow.Name = "MainWindow"
+MainWindow.Size = UDim2.fromOffset(600, 420)
+MainWindow.Position = UDim2.new(0.5, -300, 0.5, -210)
+MainWindow.BackgroundColor3 = THEME.Background
+MainWindow.Visible = true
+MainWindow.Parent = ScreenGui
+Instance.new("UICorner", MainWindow).CornerRadius = UDim.new(0, 12)
+
+local MainStroke = Instance.new("UIStroke")
+MainStroke.Color = THEME.Accent
+MainStroke.Thickness = 1.8
+MainStroke.Parent = MainWindow
+
+-- หัวข้อ
+local HeaderBar = Instance.new("Frame")
+HeaderBar.Name = "HeaderBar"
+HeaderBar.Size = UDim2.new(1, 0, 0, 45)
+HeaderBar.BackgroundColor3 = THEME.Header
+HeaderBar.Parent = MainWindow
+Instance.new("UICorner", HeaderBar).CornerRadius = UDim.new(0, 12)
+
+local HeaderTitle = Instance.new("TextLabel")
+HeaderTitle.Size = UDim2.new(1, -120, 1, 0)
+HeaderTitle.Position = UDim2.fromOffset(15, 0)
+HeaderTitle.BackgroundTransparency = 1
+HeaderTitle.Font = Enum.Font.GothamBold
+HeaderTitle.Text = "☯️ สุริยันหยินหยาง HUB & RTS HUB | v2.5.0-MEGA"
+HeaderTitle.TextColor3 = THEME.Text
+HeaderTitle.TextSize = 13
+HeaderTitle.TextXAlignment = Enum.TextXAlignment.Left
+HeaderTitle.Parent = HeaderBar
+
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.fromOffset(32, 32)
+CloseBtn.Position = UDim2.new(1, -40, 0, 6)
+CloseBtn.BackgroundColor3 = THEME.Red
+CloseBtn.Font = Enum.Font.GothamBold
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = THEME.Text
+CloseBtn.TextSize = 16
+CloseBtn.Parent = HeaderBar
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+
+-- สลับเปิด/ปิดเมนู
+FloatingButton.MouseButton1Click:Connect(function()
+    MainWindow.Visible = not MainWindow.Visible
+end)
+
+CloseBtn.Activated:Connect(function()
+    MainWindow.Visible = false
+    ShowNotification("แจ้งเตือน", "กดไอคอนหยินหยางเพื่อเปิดเมนู", 2)
+end)
+
+-- แถบเลือกแท็บ
+local TabBarContainer = Instance.new("Frame")
+TabBarContainer.Position = UDim2.fromOffset(12, 55)
+TabBarContainer.Size = UDim2.new(1, -24, 0, 38)
+TabBarContainer.BackgroundTransparency = 1
+TabBarContainer.Parent = MainWindow
+
+local TabListLayout = Instance.new("UIListLayout")
+TabListLayout.FillDirection = Enum.FillDirection.Horizontal
+TabListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
+TabListLayout.Padding = UDim.new(0, 6)
+TabListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+TabListLayout.Parent = TabBarContainer
+
+-- พื้นที่เนื้อหา
+local BodyContent = Instance.new("Frame")
+BodyContent.Position = UDim2.fromOffset(12, 102)
+BodyContent.Size = UDim2.new(1, -24, 1, -114)
+BodyContent.BackgroundColor3 = THEME.Panel
+BodyContent.Parent = MainWindow
+Instance.new("UICorner", BodyContent).CornerRadius = UDim.new(0, 9)
+
+local PagesRegistry = {}
+local TabButtonsRegistry = {}
+
+-- === ฟังก์ชันสร้างส่วนประกอบ UI ===
+local function CreateNewPage(pageName)
+    local scrollingPage = Instance.new("ScrollingFrame")
+    scrollingPage.Name = pageName
+    scrollingPage.Position = UDim2.fromOffset(6, 6)
+    scrollingPage.Size = UDim2.new(1, -12, 1, -12)
+    scrollingPage.BackgroundTransparency = 1
+    scrollingPage.ScrollBarThickness = 4
+    scrollingPage.ScrollBarImageColor3 = THEME.Accent
+    scrollingPage.CanvasSize = UDim2.new()
+    scrollingPage.Visible = false
+    scrollingPage.Parent = BodyContent
+
+    local pageLayout = Instance.new("UIListLayout")
+    pageLayout.Padding = UDim.new(0, 8)
+    pageLayout.SortOrder = Enum.SortOrder.LayoutOrder
+    pageLayout.Parent = scrollingPage
+
+    pageLayout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+        scrollingPage.CanvasSize = UDim2.new(0, 0, 0, pageLayout.AbsoluteContentSize.Y + 10)
+    end)
+
+    PagesRegistry[pageName] = scrollingPage
+    return scrollingPage
+end
+
+local function AppendLabel(pageObj, textString, customHeight)
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1, -8, 0, customHeight or 28)
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.Gotham
+    label.Text = textString
+    label.TextColor3 = THEME.Muted
+    label.TextSize = 12
+    label.TextWrapped = true
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.Parent = pageObj
+    return label
+end
+
+local function AppendButton(pageObj, buttonText, callbackFunc)
+    local button = Instance.new("TextButton")
+    button.Size = UDim2.new(1, -8, 0, 35)
+    button.BackgroundColor3 = THEME.Header
+    button.BorderSizePixel = 0
+    button.Font = Enum.Font.GothamSemibold
+    button.Text = buttonText
+    button.TextColor3 = THEME.Text
+    button.TextSize = 13
+    button.Parent = pageObj
+    Instance.new("UICorner", button).CornerRadius = UDim.new(0, 7)
+    button.Activated:Connect(callbackFunc)
+    return button
+end
+
+local function AppendToggle(pageObj, toggleLabel, initialState, callbackFunc)
+    local currentState = initialState
+    local btnRef
+    local function UpdateVisual()
+        btnRef.Text = toggleLabel .. " : " .. (currentState and "เปิดใช้งาน [ON]" or "ปิดใช้งาน [OFF]")
+        btnRef.BackgroundColor3 = currentState and THEME.Accent or THEME.Header
+    end
+    btnRef = AppendButton(pageObj, "", function()
+        currentState = not currentState
+        UpdateVisual()
+        callbackFunc(currentState)
+    end)
+    UpdateVisual()
+    return btnRef
+end
+
+local function AppendInput(pageObj, inputLabel, defaultVal, minVal, maxVal, callbackFunc)
+    local rowFrame = Instance.new("Frame")
+    rowFrame.Size = UDim2.new(1, -8, 0, 42)
+    rowFrame.BackgroundTransparency = 1
+    rowFrame.Parent = pageObj
+
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(0.6, -4, 1, 0)
+    lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.Gotham
+    lbl.Text = inputLabel
+    lbl.TextColor3 = THEME.Text
+    lbl.TextSize = 12
+    lbl.TextXAlignment = Enum.TextXAlignment.Left
+    lbl.Parent = rowFrame
+
+    local textBox = Instance.new("TextBox")
+    textBox.Size = UDim2.new(0.4, -4, 0, 32)
+    textBox.Position = UDim2.new(0.6, 4, 0, 5)
+    textBox.BackgroundColor3 = THEME.Background
+    textBox.BorderSizePixel = 0
+    textBox.Font = Enum.Font.Gotham
+    textBox.Text = tostring(defaultVal)
+    textBox.PlaceholderText = tostring(minVal) .. " - " .. tostring(maxVal)
+    textBox.TextColor3 = THEME.Text
+    textBox.TextSize = 12
+    textBox.ClearTextOnFocus = false
+    textBox.Parent = rowFrame
+    Instance.new("UICorner", textBox).CornerRadius = UDim.new(0, 6)
+
+    textBox.FocusLost:Connect(function()
+        local parsedNum = tonumber(textBox.Text)
+        if not parsedNum then
+            textBox.Text = tostring(defaultVal)
+            return
+        end
+        parsedNum = math.clamp(parsedNum, minVal, maxVal)
+        textBox.Text = tostring(parsedNum)
+        callbackFunc(parsedNum)
+    end)
+    return textBox
+end
+
+local function AddTabButton(tabKey, displayTitle)
+    local tabBtn = Instance.new("TextButton")
+    tabBtn.Name = tabKey .. "Tab"
+    tabBtn.Size = UDim2.new(0, 105, 1, 0)
+    tabBtn.BackgroundColor3 = THEME.Panel
+    tabBtn.BorderSizePixel = 0
+    tabBtn.Font = Enum.Font.GothamSemibold
+    tabBtn.Text = displayTitle
+    tabBtn.TextColor3 = THEME.Text
+    tabBtn.TextSize = 12
+    tabBtn.Parent = TabBarContainer
+    Instance.new("UICorner", tabBtn).CornerRadius = UDim.new(0, 7)
+
+    local pageRef = CreateNewPage(tabKey)
+    TabButtonsRegistry[tabKey] = tabBtn
+
+    tabBtn.Activated:Connect(function()
+        for k, p in pairs(PagesRegistry) do
+            p.Visible = (k == tabKey)
+        end
+        for k, b in pairs(TabButtonsRegistry) do
+            b.BackgroundColor3 = (k == tabKey) and THEME.Accent or THEME.Panel
+        end
+    end)
+    return pageRef
+end
+
+-- =========================================================================
+-- 📱 สร้าง 5 แท็บหลัก
+-- =========================================================================
+local TabFarm = AddTabButton("Farm", "ฟาร์ม/จุดพัก")
+local TabPlayer = AddTabButton("Player", "ผู้เล่น")
+local TabCombat = AddTabButton("Combat", "ต่อสู้ & ESP")
+local TabVisual = AddTabButton("Visuals", "ภาพ & แสง")
+local TabSettings = AddTabButton("Settings", "ตั้งค่า")
+
+-- =========================================================================
+-- 🌾 แท็บ 1: ฟาร์ม & จุดพักลอยฟ้า
+-- =========================================================================
+AppendLabel(TabFarm, "☯️ แท่นพักลอยฟ้าหยินหยาง (100 เมตร)", 32)
+
+AppendButton(TabFarm, "สร้างแท่นพักลอยฟ้า", function()
+    if HubState.Platform and HubState.Platform.Parent then
+        HubState.Platform:Destroy()
+    end
+    local part = Instance.new("Part")
+    part.Name = "YinYangPlatform"
+    part.Size = Vector3.new(30, 2, 30)
+    part.Position = Vector3.new(0, 100, 0)
+    part.Anchored = true
+    part.CanCollide = true
+    part.Material = Enum.Material.SmoothPlastic
+    part.Color = THEME.Background
+    part.Parent = Workspace
+
+    local decal = Instance.new("Decal")
+    decal.Texture = "https://cdn.phototourl.com/member/2026-10-16-c8fd00c7-3c45-446d-bf02-956f9ca17068.jpg"
+    decal.Face = Enum.NormalId.Top
+    decal.Parent = part
+
+    HubState.Platform = part
+    ShowNotification("สำเร็จ!", "สร้างแท่นพักลอยฟ้าเรียบร้อย", 2)
+end)
+
+AppendButton(TabFarm, "วาร์ปขึ้นแท่นพักลอยฟ้า", function()
+    local char = LocalPlayer.Character
+    local root = char and char:FindFirstChild("HumanoidRootPart")
+    if not (HubState.Platform and HubState.Platform.Parent) then
+        local part = Instance.new("Part")
+        part.Size = Vector3.new(30, 2, 30)
+        part.Position = Vector3.new(0, 100, 0)
+        part.Anchored = true
+        part.CanCollide = true
+        part.Parent = Workspace
+        HubState.Platform = part
+    end
+    if root then
+        root.CFrame = HubState.Platform.CFrame + Vector3.new(0, 4, 0)
+        ShowNotification("สำเร็จ", "วาร์ปขึ้นแท่นหยินหยางเรียบร้อย!", 2)
+    end
+end)
+
+AppendButton(TabFarm, "ทำลายแท่นพักลอยฟ้า", function()
+    if HubState.Platform then
+        HubState.Platform:Destroy()
+        HubState.Platform = nil
+        ShowNotification("ลบแล้ว", "ทำลายแท่นพักเรียบร้อย", 2)
+    end
+end)
+
+-- =========================================================================
+-- 🏃 แท็บ 2: ผู้เล่น & ตัวละคร
+-- =========================================================================
+AppendLabel(TabPlayer, "⚡ ปรับความเร็ว, กระโดด และการเคลื่อนที่", 30)
+
+AppendToggle(TabPlayer, "ความเร็วเดินพิเศษ", false, function(active)
+    HubState.SpeedEnabled = active
+    local _, hum = GetCharacterAndHumanoid()
+    if hum then hum.WalkSpeed = active and HubState.CustomWalkSpeed or SETTINGS.WalkSpeed end
+end)
+
+AppendInput(TabPlayer, "ค่า WalkSpeed", SETTINGS.WalkSpeed, 0, 200, function(val)
+    HubState.CustomWalkSpeed = val
+    if HubState.SpeedEnabled then
+        local _, hum = GetCharacterAndHumanoid()
+        if hum then hum.WalkSpeed = val end
+    end
+end)
+
+AppendToggle(TabPlayer, "แรงกระโดดพิเศษ", false, function(active)
+    HubState.JumpEnabled = active
+    local _, hum = GetCharacterAndHumanoid()
+    if hum then
+        hum.UseJumpPower = true
+        hum.JumpPower = active and HubState.CustomJumpPower or SETTINGS.JumpPower
+    end
+end)
+
+AppendInput(TabPlayer, "ค่า JumpPower", SETTINGS.JumpPower, 0, 300, function(val)
+    HubState.CustomJumpPower = val
+    if HubState.JumpEnabled then
+        local _, hum = GetCharacterAndHumanoid()
+        if hum then hum.JumpPower = val end
+    end
+end)
+
+AppendToggle(TabPlayer, "กระโดดกลางอากาศไม่จำกัด", false, function(active)
+    HubState.InfiniteJump = active
+end)
+
+AppendToggle(TabPlayer, "เดินทะลุกำแพง (Noclip)", false, function(active)
+    HubState.Noclip = active
+end)
+
+-- ระบบ Infinite Jump
+RegisterConnection(UserInputService.InputBegan:Connect(function(input)
+    if HubState.InfiniteJump and input.UserInputType == Enum.UserInputType.Keyboard then
+        if input.KeyCode == Enum.KeyCode.Space then
+            local hum = LocalPlayer.Character and LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+            if hum then hum:ChangeState(Enum.HumanoidStateType.Jumping) end
+        end
+    end
+end))
+
+-- ระบบ Noclip
+RegisterConnection(RunService.Stepped:Connect(function()
+    if HubState.Noclip then
+        local char = LocalPlayer.Character
+        if char then
+            for _, part in ipairs(char:GetChildren()) do
+                if part:IsA("BasePart") then part.CanCollide = false end
+            end
+        end
+    end
+end))
+
+-- =========================================================================
+-- ⚔️ แท็บ 3: ต่อสู้ & ESP
+-- =========================================================================
+AppendLabel(TabCombat, "👁️ ESP มองทะลุ & เครื่องมือต่อสู้", 30)
+
+AppendToggle(TabCombat, "เปิด ESP มองเห็นผู้เล่น", false, function(active)
+    HubState.ESPEnabled = active
+    if not active then
+        for _, v in pairs(HubState.ESPObjects) do
+            pcall(function() v:Destroy() end)
+        end
+        HubState.ESPObjects = {}
+    end
+end)
+
+-- ระบบ ESP
+RegisterConnection(RunService.RenderStepped:Connect(function()
+    if not HubState.ESPEnabled then return end
+    for _, p in ipairs(Players:GetPlayers()) do
+        if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+            local hrp = p.Character.HumanoidRootPart
+            local hum = p.Character:FindFirstChild("Humanoid")
+            if not hum or hum.Health <= 0 then
+                if HubState.ESPObjects[p] then
+                    HubState.ESPObjects[p].Text:Destroy()
+                    HubState.ESPObjects[p] = nil
+                end
+                continue
+            end
+            local pos, onScreen = Camera:WorldToViewportPoint(hrp.Position + Vector3.new(0, 2.5, 0))
+            if onScreen then
+                if not HubState.ESPObjects[p] then
+                    local text = Instance.new("TextLabel")
+                    text.BackgroundTransparency = 1
+                    text.Font = Enum.Font.GothamBold
+                    text.Text = p.Name
+                    text.TextColor3 
