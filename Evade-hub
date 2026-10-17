@@ -325,6 +325,418 @@ task.spawn(function()
         task.wait(0.3)
     end
 end)
+-- ==========================================================
+-- DELTA COMBAT HUB (WINDUI VERSION) - ULTIMATE CONTROL
+-- ==========================================================
+
+-- 1. โหลดไลบรารีและตั้งค่าธีม
+local _version = "1.6.66"
+local WindUI = loadstring(game:HttpGet("https://github.com/Footagesus/WindUI/releases/download/" .. _version .. "/main.lua"))() 
+
+WindUI:AddTheme({
+    Name = "Dark",
+    Accent = Color3.fromHex("#18181b"),
+    Background = Color3.fromHex("#101010"),
+    Outline = Color3.fromHex("#FFFFFF"),
+    Text = Color3.fromHex("#FFFFFF"),
+    Placeholder = Color3.fromHex("#7a7a7a"),
+    Button = Color3.fromHex("#52525b"),
+    Icon = Color3.fromHex("#a1a1aa"),
+})
+
+-- 2. สร้างหน้าต่างหลัก
+local Window = WindUI:CreateWindow({
+    Title = "Delta Combat Hub - Pro Suite",
+    Icon = "door-open",
+    Author = "by Delta User",
+})
+
+-- 3. ตัวแปรส่วนกลาง (Global Variables & Services)
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+
+-- สถานะและค่าปรับแต่ง
+local aimbotEnabled = false
+local triggerBotEnabled = false
+local teamCheckEnabled = true
+local espEnabled = false
+local aimbotFOV = 150
+
+-- ฟีเจอร์ใหม่ (เปิดด้วยปุ่ม Toggle + สไลด์ 0-100)
+local speedEnabled = false
+local speedValue = 16
+
+local jumpEnabled = false
+local jumpValue = 50
+
+local flyEnabled = false
+local flySpeed = 50
+
+local invisEnabled = false
+local invisValue = 0
+
+-- ==========================================================
+-- 4. สร้าง 5 แท็บหลัก
+-- ==========================================================
+local Tab1 = Window:Tab({ Title = "ออโต้คิว", Icon = "crosshair" })
+local Tab2 = Window:Tab({ Title = "เทเลพอร์ต", Icon = "map-pin" })
+local Tab3 = Window:Tab({ Title = "ผู้เล่น (Player)", Icon = "user" })
+local Tab4 = Window:Tab({ Title = "ตั้งค่า", Icon = "settings" })
+local Tab5 = Window:Tab({ Title = "ข้อมูล", Icon = "info" })
+
+-- ==========================================================
+-- [แท็บ 1] ออโต้คิว (Aimbot & TriggerBot)
+-- ==========================================================
+Tab1:Toggle({
+    Title = "เปิดระบบ Aimbot ล็อคเป้ายิง",
+    Default = false,
+    Callback = function(state)
+        aimbotEnabled = state
+    end
+})
+
+Tab1:Toggle({
+    Title = "เปิดระบบ TriggerBot (ยิงอัตโนมัติเมื่อเป้าโดนตัว)",
+    Default = false,
+    Callback = function(state)
+        triggerBotEnabled = state
+    end
+})
+
+Tab1:Slider({
+    Title = "รัศมี Aimbot (FOV)",
+    Value = { Min = 50, Max = 500, Default = 150 },
+    Callback = function(value)
+        aimbotFOV = value
+    end
+})
+
+-- ==========================================================
+-- [แท็บ 2] เทเลพอร์ต (Teleport to Enemy)
+-- ==========================================================
+Tab2:Button({
+    Title = "เทเลพอร์ตไปหาศัตรูที่ใกล้ที่สุด",
+    Callback = function()
+        local closestTarget = nil
+        local shortestDist = math.huge
+        local myRoot = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        
+        if myRoot then
+            for _, p in ipairs(Players:GetPlayers()) do
+                if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("HumanoidRootPart") then
+                    if not teamCheckEnabled or p.Team ~= LocalPlayer.Team then
+                        local dist = (p.Character.HumanoidRootPart.Position - myRoot.Position).Magnitude
+                        if dist < shortestDist then
+                            shortestDist = dist
+                            closestTarget = p.Character.HumanoidRootPart
+                        end
+                    end
+                end
+            end
+            if closestTarget then
+                myRoot.CFrame = closestTarget.CFrame + Vector3.new(0, 3, 0)
+                WindUI:Notify({ Title = "Teleport", Content = "วาร์ปไปหาศัตรูสำเร็จ!", Duration = 2 })
+            else
+                WindUI:Notify({ Title = "Teleport", Content = "ไม่พบเป้าหมายในระยะ!", Duration = 2 })
+            end
+        end
+    end
+})
+
+-- ==========================================================
+-- [แท็บ 3] ผู้เล่น (Player Mods: Speed, Jump, Fly, Invis)
+-- ==========================================================
+
+-- 1. วิ่งเร็ว (Speed)
+Tab3:Toggle({
+    Title = "เปิดใช้งานวิ่งเร็ว",
+    Default = false,
+    Callback = function(state)
+        speedEnabled = state
+    end
+})
+
+Tab3:Slider({
+    Title = "ปรับระดับความเร็ว (0 - 100)",
+    Value = { Min = 0, Max = 100, Default = 16 },
+    Callback = function(value)
+        speedValue = value
+    end
+})
+
+-- 2. กระโดดสูง (Jump)
+Tab3:Toggle({
+    Title = "เปิดใช้งานกระโดดสูง",
+    Default = false,
+    Callback = function(state)
+        jumpEnabled = state
+    end
+})
+
+Tab3:Slider({
+    Title = "ปรับระดับการกระโดด (0 - 100)",
+    Value = { Min = 0, Max = 100, Default = 50 },
+    Callback = function(value)
+        jumpValue = value
+    end
+})
+
+-- 3. บิน (Fly)
+Tab3:Toggle({
+    Title = "เปิดใช้งานบิน",
+    Default = false,
+    Callback = function(state)
+        flyEnabled = state
+    end
+})
+
+Tab3:Slider({
+    Title = "ปรับระดับความเร็วบิน (0 - 100)",
+    Value = { Min = 0, Max = 100, Default = 50 },
+    Callback = function(value)
+        flySpeed = value
+    end
+})
+
+-- 4. ล่องหน (Invisibility - ตัวอากาศ)
+Tab3:Toggle({
+    Title = "เปิดใช้งานล่องหน (ตัวอากาศ)",
+    Default = false,
+    Callback = function(state)
+        invisEnabled = state
+    end
+})
+
+Tab3:Slider({
+    Title = "ปรับระดับความโปร่งใส (0 - 100)",
+    Value = { Min = 0, Max = 100, Default = 0 },
+    Callback = function(value)
+        invisValue = value
+    end
+})
+
+-- ==========================================================
+-- [แท็บ 4] ตั้งค่า (Settings & ESP)
+-- ==========================================================
+Tab4:Toggle({
+    Title = "Team Check (ไม่โจมตีพวกเดียวกัน)",
+    Default = true,
+    Callback = function(state)
+        teamCheckEnabled = state
+    end
+})
+
+Tab4:Toggle({
+    Title = "WallHack ESP (กรอบมองทะลุกำแพง)",
+    Default = false,
+    Callback = function(state)
+        espEnabled = state
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character then
+                if espEnabled then
+                    if not p.Character:FindFirstChild("DeltaHL") then
+                        local hl = Instance.new("Highlight")
+                        hl.Name = "DeltaHL"
+                        hl.FillColor = Color3.fromRGB(255, 0, 0)
+                        hl.Parent = p.Character
+                    end
+                else
+                    if p.Character:FindFirstChild("DeltaHL") then
+                        p.Character.DeltaHL:Destroy()
+                    end
+                end
+            end
+        end
+    end
+})
+
+-- ==========================================================
+-- [แท็บ 5] ข้อมูลเพิ่มเติม (Information)
+-- ==========================================================
+Tab5:Paragraph({
+    Title = "Delta Combat Hub v2.0",
+    Content = "• Tab 1: ออโต้คิว / ล็อคเป้ายิง + รัศมี FOV\n• Tab 2: เทเลพอร์ตไปหาศัตรู\n• Tab 3: ระบบผู้เล่น (วิ่งเร็ว, กระโดด, บิน, ล่องหน) พร้อมปุ่มเปิด-ปิดและสไลด์ 0-100\n• Tab 4: ตั้งค่า ESP และเช็คทีม"
+})
+
+Tab5:Tag({
+    Title = "Updated",
+    Color = Color3.fromRGB(100, 200, 100)
+})
+
+-- ==========================================================
+-- 5. ระบบเบื้องหลังการทำงาน (Loops & Logic)
+-- ==========================================================
+
+-- ลูปหลักประมวลผล Aimbot, TriggerBot, ความเร็ว, กระโดด, บิน, ล่องหน
+RunService.RenderStepped:Connect(function()
+    local char = LocalPlayer.Character
+    if char and char:FindFirstChild("Humanoid") and char:FindFirstChild("HumanoidRootPart") then
+        local humanoid = char.Humanoid
+        local rootPart = char.HumanoidRootPart
+
+        -- 1. จัดการวิ่งเร็ว
+        if speedEnabled then
+            humanoid.WalkSpeed = speedValue
+        else
+            humanoid.WalkSpeed = 16 -- ค่าปกติ
+        end
+
+        -- 2. จัดการกระโดดสูง
+        if jumpEnabled then
+            humanoid.JumpPower = jumpValue * 3 -- ปรับสเกลให้กระโดดได้สูงตามสไลด์
+            humanoid.UseJumpPower = true
+        else
+            humanoid.JumpPower = 50 -- ค่าปกติ
+        end
+
+        -- 3. จัดการระบบบิน
+        if flyEnabled then
+            local camera = workspace.CurrentCamera
+            rootPart.Velocity = Vector3.new(0, 0, 0)
+            local moveDir = Vector3.new()
+            if UserInputService:IsKeyDown(Enum.KeyCode.W) then moveDir = moveDir + camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.S) then moveDir = moveDir - camera.CFrame.LookVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.A) then moveDir = moveDir - camera.CFrame.RightVector end
+            if UserInputService:IsKeyDown(Enum.KeyCode.D) then moveDir = moveDir + camera.CFrame.RightVector end
+            rootPart.CFrame = rootPart.CFrame + (moveDir * (flySpeed / 5))
+        end
+
+        -- 4. จัดการระบบล่องหน (ปรับความโปร่งใสเป็นอากาศ)
+        local transparency = invisValue / 100
+        for _, part in ipairs(char:GetDescendants()) do
+            if part:IsA("BasePart") and part.Name ~= "HumanoidRootPart" then
+                if invisEnabled then
+                    part.Transparency = transparency
+                else
+                    part.Transparency = 0
+                end
+            elseif part:IsA("Accessory") then
+                local handle = part:FindFirstChild("Handle")
+                if handle then
+                    if invisEnabled then
+                        handle.Transparency = transparency
+                    else
+                        handle.Transparency = 0
+                    end
+                end
+            end
+        end
+    end
+
+    -- Aimbot Logic
+    if aimbotEnabled then
+        local target = nil
+        local minDist = math.huge
+        local mousePos = UserInputService:GetMouseLocation()
+        for _, p in ipairs(Players:GetPlayers()) do
+            if p ~= LocalPlayer and p.Character and p.Character:FindFirstChild("Head") then
+                if not teamCheckEnabled or p.Team ~= LocalPlayer.Team then
+                    local head = p.Character.Head
+                    local screenPos, onScreen = Camera:WorldToViewportPoint(head.Position)
+                    if onScreen then
+                        local dist = (Vector2.new(screenPos.X, screenPos.Y) - mousePos).Magnitude
+                        if dist < aimbotFOV and dist < minDist then
+                            minDist = dist
+                            target = head
+                        end
+                    end
+                end
+            end
+        end
+        if target then
+            Camera.CFrame = CFrame.new(Camera.CFrame.Position, target.Position)
+        end
+    end
+
+    -- TriggerBot Logic
+    if triggerBotEnabled then
+        local mouse = LocalPlayer:GetMouse()
+        local target = mouse.Target
+        if target and target.Parent then
+            local enemy = Players:GetPlayerFromCharacter(target.Parent)
+            if enemy and enemy ~= LocalPlayer then
+                if not teamCheckEnabled or enemy.Team ~= LocalPlayer.Team then
+                    pcall(function()
+                        mouse1press()
+                        task.wait(0.02)
+                        mouse1release()
+                    end)
+                end
+            end
+        end
+    end
+end)
+
+-- ==========================================================
+-- 6. ระบบแสดงผลสถานะ Ping และ FPS ที่หัวหน้าต่าง
+-- ==========================================================
+local PingTag = Window:Tag({
+    Title = "Ping: 0ms",
+    Color = Color3.fromRGB(100, 200, 255),
+})
+ 
+task.spawn(function()
+    while true do
+        local success, ping = pcall(function()
+            local Stats = game:GetService("Stats")
+            local pingValue = Stats.Network.ServerStatsItem["Data Ping"]:GetValue()
+            return math.floor(pingValue)
+        end)
+        
+        if success and ping then
+            PingTag:SetTitle("Ping: " .. ping .. "ms")
+            if ping <= 50 then
+                PingTag:SetColor(Color3.fromRGB(0, 255, 0))
+            elseif ping <= 100 then
+                PingTag:SetColor(Color3.fromRGB(255, 200, 0))
+            elseif ping <= 200 then
+                PingTag:SetColor(Color3.fromRGB(255, 150, 0))
+            else
+                PingTag:SetColor(Color3.fromRGB(255, 0, 0))
+            end
+        end
+        task.wait(2)
+    end
+end)
+
+local FPSTag = Window:Tag({
+    Title = "FPS: 0",
+    Color = Color3.fromRGB(100, 150, 255),
+})
+ 
+local lastUpdate = tick()
+local frameCount = 0
+ 
+RunService.RenderStepped:Connect(function()
+    frameCount = frameCount + 1
+    local now = tick()
+    
+    if now - lastUpdate >= 1 then
+        local fps = math.floor(frameCount / (now - lastUpdate))
+        FPSTag:SetTitle("FPS: " .. fps)
+        
+        if fps >= 50 then
+            FPSTag:SetColor(Color3.fromRGB(0, 255, 0))
+        elseif fps >= 30 then
+            FPSTag:SetColor(Color3.fromRGB(255, 200, 0))
+        else
+            FPSTag:SetColor(Color3.fromRGB(255, 0, 0))
+        end
+        
+        frameCount = 0
+        lastUpdate = now
+    end
+end)
+
+-- แจ้งเตือนเมื่อโหลดสำเร็จ
+WindUI:Notify({
+    Title = "Script Loaded",
+    Content = "อัปเกรดระบบ Player Mod (วิ่ง/กระโดด/บิน/ล่องหน) สำเร็จแล้ว!",
+    Duration = 3
+})
 
 -- =========================================================================
 -- แท็บที่ 4: การตั้งค่า & ปุ่มลัด (Settings & Keybind)
