@@ -777,6 +777,457 @@ SettingsSection:Button({
         Window:Destroy()
     end
 })
+-- =========================================================================
+-- แท็บที่ 3: การตั้งค่าทั่วไป (รวมเป้าหมุน + ล็อคเป้า + ระบบ UI)
+-- =========================================================================
+local Tab4 = Window:Tab({ Title = "การตั้งค่า", Icon = "settings" })
+
+local SettingsSection = Tab4:Section({
+    Title = "ตั้งค่า UI และระบบเสริม",
+    Box = true,
+    BoxBorder = true,
+    Opened = true
+})
+
+SettingsSection:Slider({
+    Title = "ความคมชัด",
+    Value = {
+        Min = 0,
+        Max = 100,
+        Default = 50
+    },
+    Callback = function(value)
+        print("ปรับความคมชัดเป็น:", value)
+    end
+})
+
+SettingsSection:Toggle({
+    Title = "เปิด/ปิด เอฟเฟกต์เมนู",
+    Callback = function(state)
+        print("Menu Effect:", state)
+    end
+})
+
+-- =========================================================================
+-- ระบบเป้าเล็งรูปบวกหมุนได้ (Crosshair System)
+-- =========================================================================
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local CrosshairSettings = {
+    Enabled = false,
+    Color = Color3.fromRGB(255, 255, 255),
+    Radius = 45,
+    Size = 12,
+    Thickness = 2,
+    RotationSpeed = 3
+}
+
+local crosshairLines = {}
+for i = 1, 4 do
+    local line = Drawing.new("Line")
+    line.Visible = false
+    line.Color = CrosshairSettings.Color
+    line.Thickness = CrosshairSettings.Thickness
+    line.Transparency = 1
+    table.insert(crosshairLines, line)
+end
+
+local circle = Drawing.new("Circle")
+circle.Visible = false
+circle.Color = CrosshairSettings.Color
+circle.Thickness = 1.5
+circle.NumSides = 32
+circle.Radius = CrosshairSettings.Radius
+circle.Filled = false
+circle.Transparency = 1
+
+local currentAngle = 0
+
+RunService.RenderStepped:Connect(function(dt)
+    if not CrosshairSettings.Enabled then
+        for _, line in ipairs(crosshairLines) do line.Visible = false end
+        circle.Visible = false
+        return
+    end
+
+    local viewportSize = Camera.ViewportSize
+    local center = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+
+    circle.Visible = true
+    circle.Position = center
+    circle.Radius = CrosshairSettings.Radius
+    circle.Color = CrosshairSettings.Color
+
+    currentAngle = currentAngle + (CrosshairSettings.RotationSpeed * dt)
+
+    for i = 1, 4 do
+        local line = crosshairLines[i]
+        line.Visible = true
+        line.Color = CrosshairSettings.Color
+        line.Thickness = CrosshairSettings.Thickness-- =========================================================================
+-- แท็บที่ 3: การตั้งค่าทั่วไป (รวมเป้าหมุน + ล็อคเป้า + ระบบ UI)
+-- =========================================================================
+local Tab4 = Window:Tab({ Title = "การตั้งค่า", Icon = "settings" })
+
+local SettingsSection = Tab4:Section({
+    Title = "ตั้งค่า UI และระบบเสริม",
+    Box = true,
+    BoxBorder = true,
+    Opened = true
+})
+
+SettingsSection:Slider({
+    Title = "ความคมชัด",
+    Value = {
+        Min = 0,
+        Max = 100,
+        Default = 50
+    },
+    Callback = function(value)
+        print("ปรับความคมชัดเป็น:", value)
+    end
+})
+
+SettingsSection:Toggle({
+    Title = "เปิด/ปิด เอฟเฟกต์เมนู",
+    Callback = function(state)
+        print("Menu Effect:", state)
+    end
+})
+
+-- =========================================================================
+-- ระบบเป้าเล็งรูปบวกหมุนได้ (Crosshair System)
+-- =========================================================================
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local CrosshairSettings = {
+    Enabled = false,
+    Color = Color3.fromRGB(255, 255, 255),
+    Radius = 45,
+    Size = 12,
+    Thickness = 2,
+    RotationSpeed = 3
+}
+
+local crosshairLines = {}
+for i = 1, 4 do
+    local line = Drawing.new("Line")
+    line.Visible = false
+    line.Color = CrosshairSettings.Color
+    line.Thickness = CrosshairSettings.Thickness
+    line.Transparency = 1
+    table.insert(crosshairLines, line)
+end
+
+local circle = Drawing.new("Circle")
+circle.Visible = false
+circle.Color = CrosshairSettings.Color
+circle.Thickness = 1.5
+circle.NumSides = 32
+circle.Radius = CrosshairSettings.Radius
+circle.Filled = false
+circle.Transparency = 1
+
+local currentAngle = 0
+
+RunService.RenderStepped:Connect(function(dt)
+    if not CrosshairSettings.Enabled then
+        for _, line in ipairs(crosshairLines) do line.Visible = false end
+        circle.Visible = false
+        return
+    end
+
+    local viewportSize = Camera.ViewportSize
+    local center = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+
+    circle.Visible = true
+    circle.Position = center
+    circle.Radius = CrosshairSettings.Radius
+    circle.Color = CrosshairSettings.Color
+
+    currentAngle = currentAngle + (CrosshairSettings.RotationSpeed * dt)
+
+    for i = 1, 4 do
+        local line = crosshairLines[i]
+        line.Visible = true
+        line.Color = CrosshairSettings.Color
+        line.Thickness = CrosshairSettings.Thickness-- =========================================================================
+-- แท็บที่ 3: การตั้งค่าทั่วไป (รวมเป้าหมุน + ล็อคเป้า + ระบบ UI)
+-- =========================================================================
+local Tab4 = Window:Tab({ Title = "การตั้งค่า", Icon = "settings" })
+
+local SettingsSection = Tab4:Section({
+    Title = "ตั้งค่า UI และระบบเสริม",
+    Box = true,
+    BoxBorder = true,
+    Opened = true
+})
+
+SettingsSection:Slider({
+    Title = "ความคมชัด",
+    Value = {
+        Min = 0,
+        Max = 100,
+        Default = 50
+    },
+    Callback = function(value)
+        print("ปรับความคมชัดเป็น:", value)
+    end
+})
+
+SettingsSection:Toggle({
+    Title = "เปิด/ปิด เอฟเฟกต์เมนู",
+    Callback = function(state)
+        print("Menu Effect:", state)
+    end
+})
+
+-- =========================================================================
+-- ระบบเป้าเล็งรูปบวกหมุนได้ (Crosshair System)
+-- =========================================================================
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local CrosshairSettings = {
+    Enabled = false,
+    Color = Color3.fromRGB(255, 255, 255),
+    Radius = 45,
+    Size = 12,
+    Thickness = 2,
+    RotationSpeed = 3
+}
+
+local crosshairLines = {}
+for i = 1, 4 do
+    local line = Drawing.new("Line")
+    line.Visible = false
+    line.Color = CrosshairSettings.Color
+    line.Thickness = CrosshairSettings.Thickness
+    line.Transparency = 1
+    table.insert(crosshairLines, line)
+end
+
+local circle = Drawing.new("Circle")
+circle.Visible = false
+circle.Color = CrosshairSettings.Color
+circle.Thickness = 1.5
+circle.NumSides = 32
+circle.Radius = CrosshairSettings.Radius
+circle.Filled = false
+circle.Transparency = 1
+
+local currentAngle = 0
+
+RunService.RenderStepped:Connect(function(dt)
+    if not CrosshairSettings.Enabled then
+        for _, line in ipairs(crosshairLines) do line.Visible = false end
+        circle.Visible = false
+        return
+    end
+
+    local viewportSize = Camera.ViewportSize
+    local center = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+
+    circle.Visible = true
+    circle.Position = center
+    circle.Radius = CrosshairSettings.Radius
+    circle.Color = CrosshairSettings.Color
+
+    currentAngle = currentAngle + (CrosshairSettings.RotationSpeed * dt)
+
+    for i = 1, 4 do
+        local line = crosshairLines[i]
+        line.Visible = true
+        line.Color = CrosshairSettings.Color
+        line.Thickness = CrosshairSettings.Thickness-- =========================================================================
+-- แท็บที่ 3: การตั้งค่าทั่วไป (รวมเป้าหมุน + ล็อคเป้า + ระบบ UI)
+-- =========================================================================
+local Tab4 = Window:Tab({ Title = "การตั้งค่า", Icon = "settings" })
+
+local SettingsSection = Tab4:Section({
+    Title = "ตั้งค่า UI และระบบเสริม",
+    Box = true,
+    BoxBorder = true,
+    Opened = true
+})
+
+SettingsSection:Slider({
+    Title = "ความคมชัด",
+    Value = {
+        Min = 0,
+        Max = 100,
+        Default = 50
+    },
+    Callback = function(value)
+        print("ปรับความคมชัดเป็น:", value)
+    end
+})
+
+SettingsSection:Toggle({
+    Title = "เปิด/ปิด เอฟเฟกต์เมนู",
+    Callback = function(state)
+        print("Menu Effect:", state)
+    end
+})
+
+-- =========================================================================
+-- ระบบเป้าเล็งรูปบวกหมุนได้ (Crosshair System)
+-- =========================================================================
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local CrosshairSettings = {
+    Enabled = false,
+    Color = Color3.fromRGB(255, 255, 255),
+    Radius = 45,
+    Size = 12,
+    Thickness = 2,
+    RotationSpeed = 3
+}
+
+local crosshairLines = {}
+for i = 1, 4 do
+    local line = Drawing.new("Line")
+    line.Visible = false
+    line.Color = CrosshairSettings.Color
+    line.Thickness = CrosshairSettings.Thickness
+    line.Transparency = 1
+    table.insert(crosshairLines, line)
+end
+
+local circle = Drawing.new("Circle")
+circle.Visible = false
+circle.Color = CrosshairSettings.Color
+circle.Thickness = 1.5
+circle.NumSides = 32
+circle.Radius = CrosshairSettings.Radius
+circle.Filled = false
+circle.Transparency = 1
+
+local currentAngle = 0
+
+RunService.RenderStepped:Connect(function(dt)
+    if not CrosshairSettings.Enabled then
+        for _, line in ipairs(crosshairLines) do line.Visible = false end
+        circle.Visible = false
+        return
+    end
+
+    local viewportSize = Camera.ViewportSize
+    local center = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+
+    circle.Visible = true
+    circle.Position = center
+    circle.Radius = CrosshairSettings.Radius
+    circle.Color = CrosshairSettings.Color
+
+    currentAngle = currentAngle + (CrosshairSettings.RotationSpeed * dt)
+
+    for i = 1, 4 do
+        local line = crosshairLines[i]
+        line.Visible = true
+        line.Color = CrosshairSettings.Color
+        line.Thickness = CrosshairSettings.Thickness-- =========================================================================
+-- แท็บที่ 3: การตั้งค่าทั่วไป (รวมเป้าหมุน + ล็อคเป้า + ระบบ UI)
+-- =========================================================================
+local Tab4 = Window:Tab({ Title = "การตั้งค่า", Icon = "settings" })
+
+local SettingsSection = Tab4:Section({
+    Title = "ตั้งค่า UI และระบบเสริม",
+    Box = true,
+    BoxBorder = true,
+    Opened = true
+})
+
+SettingsSection:Slider({
+    Title = "ความคมชัด",
+    Value = {
+        Min = 0,
+        Max = 100,
+        Default = 50
+    },
+    Callback = function(value)
+        print("ปรับความคมชัดเป็น:", value)
+    end
+})
+
+SettingsSection:Toggle({
+    Title = "เปิด/ปิด เอฟเฟกต์เมนู",
+    Callback = function(state)
+        print("Menu Effect:", state)
+    end
+})
+
+-- =========================================================================
+-- ระบบเป้าเล็งรูปบวกหมุนได้ (Crosshair System)
+-- =========================================================================
+local RunService = game:GetService("RunService")
+local Camera = workspace.CurrentCamera
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local CrosshairSettings = {
+    Enabled = false,
+    Color = Color3.fromRGB(255, 255, 255),
+    Radius = 45,
+    Size = 12,
+    Thickness = 2,
+    RotationSpeed = 3
+}
+
+local crosshairLines = {}
+for i = 1, 4 do
+    local line = Drawing.new("Line")
+    line.Visible = false
+    line.Color = CrosshairSettings.Color
+    line.Thickness = CrosshairSettings.Thickness
+    line.Transparency = 1
+    table.insert(crosshairLines, line)
+end
+
+local circle = Drawing.new("Circle")
+circle.Visible = false
+circle.Color = CrosshairSettings.Color
+circle.Thickness = 1.5
+circle.NumSides = 32
+circle.Radius = CrosshairSettings.Radius
+circle.Filled = false
+circle.Transparency = 1
+
+local currentAngle = 0
+
+RunService.RenderStepped:Connect(function(dt)
+    if not CrosshairSettings.Enabled then
+        for _, line in ipairs(crosshairLines) do line.Visible = false end
+        circle.Visible = false
+        return
+    end
+
+    local viewportSize = Camera.ViewportSize
+    local center = Vector2.new(viewportSize.X / 2, viewportSize.Y / 2)
+
+    circle.Visible = true
+    circle.Position = center
+    circle.Radius = CrosshairSettings.Radius
+    circle.Color = CrosshairSettings.Color
+
+    currentAngle = currentAngle + (CrosshairSettings.RotationSpeed * dt)
+
+    for i = 1, 4 do
+        local line = crosshairLines[i]
+        line.Visible = true
+        line.Color = CrosshairSettings.Color
+        line.Thickness = CrosshairSettings.Thickness
 
 -- =========================================================================
 -- ลูปเบื้องหลังควบคุมฟิสิกส์ตัวละคร
