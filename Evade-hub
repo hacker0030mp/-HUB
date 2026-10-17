@@ -15,13 +15,13 @@ WindUI:Notify({
 })
 
 -- =================================================================
--- 2. สร้างหน้าต่างหลัก (Window)
+-- 2. สร้างหน้าต่างหลัก (Window) พร้อมกำหนด Folder บันทึกค่า
 -- =================================================================
 local Window = WindUI:CreateWindow({
     Title = "Evade Hub",
     Icon = MainImageURL,
     Author = "RTS HUB",
-    Folder = "EvadeConfig",
+    Folder = "RTSHub_EvadeConfig", -- โฟลเดอร์สำหรับบันทึก Config อัตโนมัติ
     Size = UDim2.fromOffset(580, 460),
     Transparent = true,
     Theme = "Dark",
@@ -36,9 +36,6 @@ local PlayerTab  = Window:Tab({ Title = "ผู้เล่น", Icon = "user" }
 local VisualTab  = Window:Tab({ Title = "ไอคอน", Icon = "eye" })
 local SettingsTab = Window:Tab({ Title = "การตั้งค่า", Icon = "settings" })
 local AboutTab   = Window:Tab({ Title = "เกี่ยวกับ", Icon = "info" })
-
--- เพิ่ม Tag สวยงามในแท็บหลัก
-MainTab:Tag({ Title = "NEW", Color = Color3.fromRGB(255, 255, 255) })
 
 -- =================================================================
 -- 📌 แท็บ 1: หน้าหลัก (Main)
@@ -164,9 +161,27 @@ ESPSection:Toggle({
 })
 
 -- =================================================================
--- ⚙️ แท็บ 5: การตั้งค่า (Settings)
+-- ⚙️ แท็บ 5: การตั้งค่า (Settings) + ระบบบันทึก Config
 -- =================================================================
-local SettingsSection = SettingsTab:Section({ Title = "ตั้งค่าทั่วไป" })
+local SettingsSection = SettingsTab:Section({ Title = "ระบบบันทึกและการตั้งค่า" })
+
+SettingsSection:Button({
+    Title = "บันทึกการตั้งค่า (Save Config)",
+    Desc = "บันทึกค่าสถานะปัจจุบันเก็บไว้",
+    Callback = function()
+        Window:SaveConfig()
+        WindUI:Notify({ Title = "Settings", Content = "บันทึกการตั้งค่าเรียบร้อย!", Duration = 2 })
+    end
+})
+
+SettingsSection:Button({
+    Title = "โหลดการตั้งค่า (Load Config)",
+    Desc = "โหลดค่าที่เคยบันทึกไว้กลับมาใช้งาน",
+    Callback = function()
+        Window:LoadConfig()
+        WindUI:Notify({ Title = "Settings", Content = "โหลดการตั้งค่าสำเร็จ!", Duration = 2 })
+    end
+})
 
 SettingsSection:Button({
     Title = "รีเซ็ตค่าเดิม (Reset Settings)",
@@ -187,6 +202,7 @@ SettingsSection:Button({
         if CoreGui:FindFirstChild("EvadeToggleGui") then
             CoreGui.EvadeToggleGui:Destroy()
         end
+        Window:Destroy()
     end
 })
 
@@ -305,7 +321,6 @@ end)
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
--- ลูปปรับค่าความเร็ว และ Auto Jump
 task.spawn(function()
     while task.wait(0.1) do
         if _G.EnablePlayerCustoms and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
@@ -319,7 +334,6 @@ task.spawn(function()
     end
 end)
 
--- ลูประบบ Bot ESP
 task.spawn(function()
     while task.wait(1) do
         if _G.BotESP then
